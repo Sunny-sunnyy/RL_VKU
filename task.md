@@ -1,0 +1,23 @@
+# Checklist: Pong RL Comparison
+
+- [x] Phase 1: Initialize PyProject workspace and configure uv
+    - [x] Create `pyproject.toml` with dependencies
+    - [x] Install dependencies via uv
+- [x] Phase 2: Implement Common Infrastructure
+    - [x] Implement Gymnasium environment wrappers (`src/common/wrappers.py`)
+    - [x] Implement plotting and data logs utilities (`src/common/utils.py`)
+- [x] Phase 3: Implement PyTorch Scratch (Version A)
+    - [x] Implement Replay Buffer (`src/scratch/replay_buffer.py`)
+    - [x] Implement DQN & Dueling DQN models (`src/scratch/models.py`)
+    - [x] Implement Agent logic (`src/scratch/agent.py`)
+    - [x] Implement Scratch custom training loop (`src/scratch/train.py`)
+- [x] Phase 4: Implement Stable-Baselines3 Benchmark (Version B)
+    - [x] Implement SB3 training script (`src/sb3/train.py`)
+- [x] Phase 5: Implement Scripts & Evaluation Framework
+    - [x] Implement `scripts/run_scratch.py` and `scripts/run_sb3.py`
+    - [x] Implement `scripts/evaluate.py` to test and generate plots/videos
+- [x] Phase 6: Write Unit Tests & Verification
+    - [x] Write `tests/test_wrappers.py`
+    - [x] Write `tests/test_replay_buffer.py`
+    - [x] Write `tests/test_models.py`
+    - [x] Run automated checks with pytest
