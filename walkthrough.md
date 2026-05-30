@@ -10,9 +10,6 @@ All deliverables are created in a highly modular and structured directory tree u
 ```
 g:/RL_VKU/ck/pong-comparison/
 ├── data/                          # Outputs
-│   ├── models/                    # Saved models (.pth checkpoints)
-│   ├── logs/                      # CSV metrics (episodic rewards & losses)
-│   └── videos/                    # Gameplay recordings (MP4/GIF)
 ├── notebooks/                     # Jupyter Notebooks running on Vast.ai / local
 │   ├── dqn_scratch.ipynb          # Custom Standard DQN training and plots
 │   ├── dueling_ddqn_scratch.ipynb  # Custom Dueling Double DQN training and plots
@@ -26,7 +23,7 @@ g:/RL_VKU/ck/pong-comparison/
 │   │   ├── __init__.py
 │   │   ├── wrappers.py            # Gymnasium AtariPreprocessing & FrameStackObservation
 │   │   └── utils.py               # CSVLogger, plotters, PyTorch checkpointing
-│   └── scratch/                   # Version A: Custom PyTorch Scratch
+│   └── scratch/                   # Custom PyTorch Scratch Agent Modules
 │       ├── __init__.py
 │       ├── replay_buffer.py       # Pre-allocated np.uint8 Replay Buffer
 │       ├── models.py              # CNN DQN, DuelingDQN, and ActorCriticCNN architectures
@@ -91,7 +88,7 @@ tests\test_ppo.py ....                                                   [ 66%]
 tests\test_replay_buffer.py ...                                          [ 91%]
 tests\test_wrappers.py .                                                 [100%]
 
-============================= 12 passed in 5.34s ==============================
+============================= 12 passed in 5.86s ==============================
 ```
 *   **`test_wrappers.py`:** Verified Atari env initialization, observation space shape of `(4, 84, 84)`, and correct scaling in `[0.0, 1.0]`.
 *   **`test_replay_buffer.py`:** Verified memory pre-allocation, ring buffer index rollover, sampling shapes, and cast normalizations.
@@ -100,7 +97,29 @@ tests\test_wrappers.py .                                                 [100%]
 
 ---
 
-## 4. Guidelines for Vast.ai Training
+## 4. Evaluation Suite & PPO (Scratch) Integration
+The comparative evaluation script [scripts/evaluate.py](file:///g:/RL_VKU/ck/pong-comparison/scripts/evaluate.py) is upgraded to fully support PPO (Scratch):
+*   **Aesthetic Training Curves:**
+    Plotting handles PPO (Scratch) log curves (plotted in `#e377c2` Pink) and combines them with DQN and PPO baselines.
+*   **Deterministic Evaluation Loop:**
+    `evaluate_ppo_scratch` loads custom `ActorCriticCNN` checkpoints (e.g. `ppo_scratch_best.pt`), extracts state dicts (direct or nested), and runs deterministic episode rollouts (`logits.argmax(dim=1)`).
+*   **Robust Automatic Searching:**
+    Custom search logic detects Log and Checkpoint files automatically in directories, ensuring that seed-appended files (e.g., `ppo_scratch_seed*.csv`) are found dynamically.
+*   **Verification Run:**
+    Executing `uv run scripts/evaluate.py --episodes 1` with dummy logs and a mock checkpoint compiles successfully and prints:
+    ```text
+    ======================================================================
+                   PONG RL AGENT COMPARATIVE PERFORMANCE MATRIX
+    ======================================================================
+    Algorithm                 | Avg Reward   | Inference Speed      | Status    
+    ----------------------------------------------------------------------
+    PPO (Scratch)             | -21.00       | 385.7 frames/sec     | Converging
+    ======================================================================
+    ```
+
+---
+
+## 5. Guidelines for Vast.ai Training
 When renting GPUs on Vast.ai to run training runs, follow these steps:
 1.  **Start Jupyter Instance:** Rent an RTX 3090 Ti or RTX 5090 instance and open the provided Jupyter Lab interface.
 2.  **Clone / Copy Code:** Copy the `pong-comparison` folder to the Jupyter workspace.
@@ -112,3 +131,5 @@ When renting GPUs on Vast.ai to run training runs, follow these steps:
     ```
 4.  **Run Jupyter Notebooks:**
     Navigate to the `notebooks/` directory and run any notebook (e.g. `ppo_scratch.ipynb` or `ppo_sb3.ipynb`) cell-by-cell to execute, visualize real-time training plots, and automatically export CSV metrics and models.
+5.  **Generate comparative reports:**
+    Once training is completed, run `uv run scripts/evaluate.py` to compile all graphs, performance matrix, and gameplay recordings!

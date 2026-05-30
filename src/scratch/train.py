@@ -6,7 +6,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from src.common.wrappers import make_atari_env
 from src.common.utils import CSVLogger, save_checkpoint
-from src.scratch.agent import DQNAgent
+from src.scratch.dqn_agent import DQNAgent
 
 def train_scratch(
     env_id: str = "PongNoFrameskip-v4",

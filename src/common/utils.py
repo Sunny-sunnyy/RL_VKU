@@ -61,7 +61,8 @@ def plot_comparison_curves(log_files: dict, save_path: str, window_size: int = 1
         "Dueling DDQN (Scratch)": "#ff7f0e",   # Vibrant Orange
         "DQN (SB3)": "#2ca02c",                # Soft Green
         "Dueling DQN (SB3)": "#d62728",        # Deep Red
-        "PPO (SB3)": "#9467bd"                 # Amethyst Purple
+        "PPO (SB3)": "#9467bd",                # Amethyst Purple
+        "PPO (Scratch)": "#e377c2"             # Pink
     }
     
     for label, filepath in log_files.items():

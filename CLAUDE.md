@@ -7,7 +7,7 @@ This file acts as a master entry point for new AI assistants or human developers
 ## 1. Project Overview & Context
 This project is a scientific comparative benchmark that compares value-based (Custom PyTorch DQN & Dueling Double DQN from scratch) against policy-based (Custom PyTorch PPO from scratch and SB3 baselines) Reinforcement Learning algorithms on Atari Pong (`PongNoFrameskip-v4`).
 *   **Target Device:** Trained on rented high-performance GPUs (Vast.ai / RunPod RTX 3090 Ti or RTX 5090) utilizing Jupyter Server.
-*   **Current State:** Workspace fully refactored. The 3 custom scratch agents (DQN, Dueling DDQN, PPO) are fully implemented in separate modular modules under `src/scratch/` and verified. All 6 Jupyter Notebooks are prepared. All 12 unit tests compile and pass successfully.
+*   **Current State:** All custom scratch architectures (DQN, Dueling Double DQN, PPO), Stable-Baselines3 baseline scripts, unified evaluation notebooks, and unit tests are fully written and verified. PPO (Scratch) is now fully integrated into the evaluation suite (`scripts/evaluate.py`). All 12 unit tests compile and pass successfully.
 
 ---
 
@@ -37,6 +37,15 @@ All training, logging, and performance visualization is executed via the indepen
 *   `notebooks/dueling_dqn_sb3.ipynb`: Stable-Baselines3 Dueling DQN baseline.
 *   `notebooks/ppo_sb3.ipynb`: Stable-Baselines3 PPO baseline.
 
+### Comparative Evaluation & Plotting
+```bash
+# Run full evaluation on existing model checkpoints and record gameplay videos
+uv run scripts/evaluate.py --episodes 5 --video-dir data/videos
+
+# Regenerate training curves comparison plot only (skips evaluation)
+uv run scripts/evaluate.py --plot-only
+```
+
 ---
 
 ## 3. Key File Map
@@ -49,6 +58,7 @@ All training, logging, and performance visualization is executed via the indepen
 *   `src/scratch/dueling_ddqn_agent.py`: Custom Dueling Double DQN agent implementing Double Q-learning updates.
 *   `src/scratch/ppo_agent.py`: Custom PPO agent implementing Actor-Critic rollouts, GAE calculations, and clipped PPO updates.
 *   `tests/`: Unit test suite covering all core deep learning modules, wrappers, replay buffer, and custom PPO math.
+*   `scripts/evaluate.py`: The evaluation suite supporting all 6 algorithms (value-based scratch, PPO scratch, and SB3 baselines).
 
 ---
 

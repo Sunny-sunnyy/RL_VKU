@@ -5,7 +5,7 @@ This file serves as a persistent record of project progress, developmental decis
 ---
 
 ## Project Status Overview
-*   **Current State:** Phase 9 Completed. All custom scratch architectures (DQN, Dueling Double DQN, PPO), Stable-Baselines3 baseline scripts, unified evaluation notebooks, and unit tests are fully written and verified!
+*   **Current State:** Phase 10 Completed. All custom scratch architectures (DQN, Dueling Double DQN, PPO), Stable-Baselines3 baseline scripts, unified evaluation notebooks, and unit tests are fully written and verified. Additionally, PPO (Scratch) is now fully integrated into the evaluation suite!
 *   **Goal:** Implement PyTorch custom scratch implementations of DQN, Dueling Double DQN, and PPO and compare them against Stable-Baselines3 (DQN, Dueling DQN, PPO).
 *   **Target Device:** High-Performance GPU Cluster (RTX 3090 Ti / RTX 5090) executing via Jupyter Server.
 
@@ -49,3 +49,13 @@ This file serves as a persistent record of project progress, developmental decis
     *   Create `notebooks/` workspace directory.
     *   Build 6 independent `.ipynb` notebooks for modular training (3 custom scratch + 3 library baselines).
     *   Integrate unified loggers and callback monitors tracking episodic rewards and losses into CSV format.
+
+### 7. PPO (Scratch) Evaluation Suite Integration & Bugfixes
+*   **Status:** Completed
+*   **Tasks:**
+    *   Integrate `"PPO (Scratch)"` color configuration into `src/common/utils.py`.
+    *   Implement PPO model napping, weights loading, deterministic action selection, and inference loop in `scripts/evaluate.py`.
+    *   Add custom helper functions for dynamic log and checkpoint searches to avoid hardcoded seed conflicts.
+    *   Fix package import bugs in `src/scratch/__init__.py` and `src/scratch/train.py` (which previously referenced the non-existent `src/scratch/agent.py`).
+    *   Fix printing KeyError (`"Inference Speed"`) in the performance matrix generator.
+    *   Execute full verification using unit tests and mock checkpoint evaluations (all tests and evaluations passed successfully!).

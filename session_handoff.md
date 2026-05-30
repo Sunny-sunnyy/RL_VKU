@@ -7,13 +7,14 @@ Copy và paste toàn bộ nội dung dưới đây vào ô chat của phiên là
 ```markdown
 Chào bạn, tôi là sinh viên đang thực hiện đề tài cuối kỳ so sánh thuật toán Reinforcement Learning trên Atari Pong. Dự án nằm hoàn toàn trong thư mục `G:\RL_VKU\ck\pong-comparison`.
 
-Hiện tại dự án vừa trải qua một đợt nâng cấp và tái cấu trúc kiến trúc cực kỳ lớn. Để thiết lập lại ngữ cảnh sạch sẽ và nắm vững dự án, bạn hãy thực hiện nghiêm ngặt các bước sau:
+Hiện tại dự án vừa hoàn tất việc tích hợp thuật toán PPO (Scratch) tự viết từ đầu bằng PyTorch vào bộ công cụ đánh giá so sánh và vẽ biểu đồ hiệu năng chung. Để thiết lập lại ngữ cảnh sạch sẽ và nắm vững dự án, bạn hãy thực hiện nghiêm ngặt các bước sau:
 
 1. Đọc và nắm vững master handoff trong file [CLAUDE.md](file:///G:/RL_VKU/ck/pong-comparison/CLAUDE.md) để hiểu cấu trúc thư mục mới và các lệnh chạy virtual environment.
-2. Đọc [walkthrough.md](file:///G:/RL_VKU/ck/pong-comparison/walkthrough.md) để hiểu chi tiết toán học của thuật toán PPO Scratch mới xây dựng (rollout, GAE, clipped loss) và kết quả unit tests.
-3. Đọc [progress_log.md](file:///G:/RL_VKU/ck/pong-comparison/progress_log.md) để nắm được các milestones đã hoàn thành.
+2. Đọc [walkthrough.md](file:///G:/RL_VKU/ck/pong-comparison/walkthrough.md) để hiểu chi tiết toán học của thuật toán PPO Scratch mới xây dựng (rollout, GAE, clipped loss), cách tích hợp nạp mô hình checkpoint PPO Scratch và kết quả unit tests.
+3. Đọc [progress_log.md](file:///G:/RL_VKU/ck/pong-comparison/progress_log.md) để nắm được các milestones đã hoàn thành (gồm cả Phase 7 tích hợp PPO Scratch vào evaluation suite).
 4. Chạy kiểm thử tự động bằng lệnh `uv run pytest` trong thư mục dự án để xác nhận toàn bộ 12/12 unit tests tiếp tục hoạt động ổn định và chính xác 100%.
-5. Sau khi đọc xong, hãy tóm tắt cực kỳ ngắn gọn những gì bạn hiểu về trạng thái dự án hiện tại và hỏi tôi về bước ưu tiên huấn luyện hoặc đánh giá tiếp theo bạn cần hỗ trợ.
+5. Thử chạy kịch bản vẽ đồ thị đối chứng `uv run scripts/evaluate.py --plot-only` để kiểm tra khả năng tích hợp.
+6. Sau khi đọc xong, hãy tóm tắt cực kỳ ngắn gọn những gì bạn hiểu về trạng thái dự án hiện tại và hỏi tôi về bước ưu tiên huấn luyện hoặc đánh giá tiếp theo bạn cần hỗ trợ.
 
 Lưu ý:
 - Giao tiếp bằng Tiếng Việt (giữ nguyên các thuật ngữ Tiếng Anh chuyên ngành).

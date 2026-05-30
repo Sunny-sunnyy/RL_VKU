@@ -9,7 +9,7 @@
 - [x] Phase 3: Implement PyTorch Scratch (Version A)
     - [x] Implement Replay Buffer (`src/scratch/replay_buffer.py`)
     - [x] Implement DQN & Dueling DQN models (`src/scratch/models.py`)
-    - [x] Implement Agent logic (`src/scratch/agent.py`)
+    - [x] Implement Agent logic (`src/scratch/dqn_agent.py`)
     - [x] Implement Scratch custom training loop (`src/scratch/train.py`)
 - [x] Phase 4: Implement Stable-Baselines3 Benchmark (Version B)
     - [x] Implement SB3 training script (`src/sb3/train.py`)
@@ -20,4 +20,11 @@
     - [x] Write `tests/test_wrappers.py`
     - [x] Write `tests/test_replay_buffer.py`
     - [x] Write `tests/test_models.py`
+    - [x] Write `tests/test_ppo.py`
     - [x] Run automated checks with pytest
+- [x] Phase 7: Integrate PPO (Scratch) into Evaluation Suite
+    - [x] Add colors representation in `src/common/utils.py`
+    - [x] Implement `evaluate_ppo_scratch` in `scripts/evaluate.py`
+    - [x] Fix import errors in `src/scratch/__init__.py` and `src/scratch/train.py`
+    - [x] Run automated pytest verification (12/12 passed)
+    - [x] Dry-run evaluate and verify Performance Matrix (passed)
