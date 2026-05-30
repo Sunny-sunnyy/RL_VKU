@@ -13,6 +13,10 @@
     <!-- Prism.js để tự động tô màu cú pháp Python chuyên nghiệp -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     
+    <!-- KaTeX CDN for Fast Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    
     <style>
         /* ==========================================================================
            HỆ THỐNG BIẾN CSS & CẤU HÌNH GIAO DIỆN PREMIUM LIGHT THEME (Cỡ chữ to hơn)
@@ -665,17 +669,67 @@
             cursor: pointer;
             font-size: 15.5px;
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             transition: var(--transition-smooth);
         }
 
         .quiz-option:hover {
             border-color: var(--primary);
             background-color: rgba(0, 102, 204, 0.02);
+            color: var(--primary);
         }
 
         .quiz-option.selected {
             background-color: rgba(0, 102, 204, 0.06);
             border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .quiz-option.correct {
+            border-color: #2ecc71 !important;
+            background-color: rgba(46, 204, 113, 0.05) !important;
+            color: #27ae60 !important;
+        }
+
+        .quiz-option.incorrect {
+            border-color: #e74c3c !important;
+            background-color: rgba(231, 76, 60, 0.05) !important;
+            color: #c0392b !important;
+        }
+
+        .quiz-opt-letter {
+            width: 26px;
+            height: 26px;
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-code);
+            font-size: 13px;
+            font-weight: 700;
+            transition: var(--transition-smooth);
+        }
+
+        .quiz-option.selected .quiz-opt-letter {
+            background-color: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .quiz-option.correct .quiz-opt-letter {
+            background-color: #2ecc71 !important;
+            color: #ffffff !important;
+            border-color: #2ecc71 !important;
+        }
+
+        .quiz-option.incorrect .quiz-opt-letter {
+            background-color: #e74c3c !important;
+            color: #ffffff !important;
+            border-color: #e74c3c !important;
         }
 
         .quiz-action-btn {
@@ -761,6 +815,21 @@
             font-weight: 700;
         }
 
+        .cheat-table td {
+            vertical-align: top;
+        }
+
+        .cheat-table code {
+            font-family: var(--font-code);
+            font-size: 13.5px;
+            color: var(--primary);
+            background-color: var(--secondary-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
         /* Footer */
         footer {
             margin-top: 60px;
@@ -817,8 +886,11 @@
             <li class="nav-item" data-section="benchmark">
                 <a href="#benchmark" class="nav-link">6. Chạy Thực nghiệm</a>
             </li>
+            <li class="nav-item" data-section="cheat-sheet">
+                <a href="#cheat-sheet" class="nav-link">7. Tra cứu Toán - Code</a>
+            </li>
             <li class="nav-item" data-section="quiz">
-                <a href="#quiz" class="nav-link">7. Câu hỏi Củng cố</a>
+                <a href="#quiz" class="nav-link">8. Câu hỏi Vấn đáp</a>
             </li>
         </ul>
 
@@ -1048,15 +1120,23 @@
                             <span class="code-lang-badge">Python</span>
                         </div>
                         <pre class="language-python"><code class="language-python"># Trích mẫu ngẫu nhiên một minibatch từ Replay Buffer
+# states: shape (batch_size, 4, 84, 84)
+# actions: shape (batch_size,), rewards: shape (batch_size,), dones: shape (batch_size,)
 states, actions, rewards, next_states, dones = self.replay_buffer.sample(self.batch_size)
 
 # Tính Q-value hiện tại của Agent đối với trạng thái hiện tại
+# q_values: shape (batch_size, num_actions)
 q_values = self.online_net(states) <span class="code-annotation-marker" onclick="showCodeDetail('dqn-1')">1</span>
+# state_action_values: shape (batch_size,)
 state_action_values = q_values.gather(1, actions.unsqueeze(1)).squeeze(1) <span class="code-annotation-marker" onclick="showCodeDetail('dqn-2')">2</span>
 
 # Tính toán giá trị Q kỳ vọng từ Target Network (phương trình Bellman)
 with torch.no_grad(): <span class="code-annotation-marker" onclick="showCodeDetail('dqn-3')">3</span>
-    next_state_values = self.target_net(next_states).max(dim=1)[0]
+    # target Q-values ở next_states: shape (batch_size, num_actions)
+    next_q = self.target_net(next_states)
+    # next_state_values: shape (batch_size,)
+    next_state_values = next_q.max(dim=1)[0]
+    # expected_state_action_values: shape (batch_size,)
     expected_state_action_values = rewards + self.gamma * next_state_values * (1.0 - dones) <span class="code-annotation-marker" onclick="showCodeDetail('dqn-4')">4</span>
 
 # Tính toán hàm mất mát Mean Squared Error
@@ -1082,12 +1162,16 @@ self.optimizer.step()</code></pre>
                         <pre class="language-python"><code class="language-python"># Tính toán giá trị Q kỳ vọng bằng công thức Double DQN
 with torch.no_grad():
     # 1. Dùng Online Network để lựa chọn hành động tốt nhất cho trạng thái s'
+    # online_next_q: shape (batch_size, num_actions)
+    # best_actions: shape (batch_size, 1) chứa argmax index
     best_actions = self.online_net(next_states).argmax(dim=1, keepdim=True) <span class="code-annotation-marker" onclick="showCodeDetail('ddqn-1')">1</span>
     
     # 2. Dùng Target Network để định lượng giá trị Q của hành động tốt nhất đó
+    # target_next_q: shape (batch_size, num_actions)
+    # next_state_values: shape (batch_size,)
     next_state_values = self.target_net(next_states).gather(1, best_actions).squeeze(1) <span class="code-annotation-marker" onclick="showCodeDetail('ddqn-2')">2</span>
         
-    # 3. Tính mục tiêu Bellman
+    # 3. Tính mục tiêu Bellman: shape (batch_size,)
     expected_state_action_values = rewards + self.gamma * next_state_values * (1.0 - dones)</code></pre>
                     </div>
                     
@@ -1097,10 +1181,14 @@ with torch.no_grad():
                             <span class="code-lang-badge">Python</span>
                         </div>
                         <pre class="language-python"><code class="language-python"># Tính toán song song hai nhánh Value Stream V(s) và Advantage Stream A(s, a)
+# flat_out: shape (batch_size, 3136) trích xuất từ Nature CNN trunk
+# values: shape (batch_size, 1)
 values = self.value_stream(flat_out) <span class="code-annotation-marker" onclick="showCodeDetail('ddqn-3')">3</span>
+# advantages: shape (batch_size, num_actions)
 advantages = self.advantage_stream(flat_out)
 
 # Kết hợp: Q(s, a) = V(s) + A(s, a) - mean(A(s, a'))
+# q_values: shape (batch_size, num_actions)
 q_values = values + (advantages - advantages.mean(dim=1, keepdim=True)) <span class="code-annotation-marker" onclick="showCodeDetail('ddqn-4')">4</span>
 return q_values</code></pre>
                     </div>
@@ -1116,9 +1204,13 @@ return q_values</code></pre>
                             <span class="code-lang-badge">Python</span>
                         </div>
                         <pre class="language-python"><code class="language-python"># Tính tỷ lệ xác suất chính sách mới / cũ: r_t(theta)
+# new_log_probs: shape (batch_size,)
+# b_old_log_probs: shape (batch_size,)
+# ratios: shape (batch_size,)
 ratios = torch.exp(new_log_probs - b_old_log_probs) <span class="code-annotation-marker" onclick="showCodeDetail('ppo-1')">1</span>
 
 # Tính toán hai nhánh của Clipped Policy Loss
+# b_advantages: shape (batch_size,) đã được chuẩn hóa (normalize)
 surr1 = ratios * b_advantages
 surr2 = torch.clamp(ratios, 1.0 - self.clip_ratio, 1.0 + self.clip_ratio) * b_advantages <span class="code-annotation-marker" onclick="showCodeDetail('ppo-2')">2</span>
 policy_loss = -torch.min(surr1, surr2).mean() <span class="code-annotation-marker" onclick="showCodeDetail('ppo-3')">3</span>
@@ -1205,18 +1297,84 @@ loss = policy_loss + self.val_coef * value_loss - self.entropy_coef * entropy <s
             </div>
         </section>
 
-        <!-- SECTION 7: CÂU HỎI CỦNG CỐ TƯƠNG TÁC -->
-        <section id="quiz" class="searchable-section">
-            <h2 class="section-title">7. Câu hỏi Ôn tập Củng cố</h2>
-            <p>Hãy tự kiểm tra kiến thức lập trình Reinforcement Learning của bạn với các câu hỏi tương tác dưới đây:</p>
+        <!-- SECTION 7: BẢNG TRA CỨU TOÁN - CODE -->
+        <section id="cheat-sheet" class="searchable-section">
+            <h2 class="section-title">7. Bảng Tra cứu Toán - Code (Oral Exam Prep)</h2>
+            <p>Hội đồng thầy cô thường yêu cầu bạn chỉ ra chính xác dòng code nào thực hiện công thức toán học nào. Hãy sử dụng bảng tra cứu nhanh dưới đây để ôn tập và trả lời vấn đáp một cách tự tin:</p>
+            
+            <table class="comparison-table cheat-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Khái niệm & Công thức Toán</th>
+                        <th style="width: 35%;">Vị trí trong Codebase</th>
+                        <th style="width: 40%;">Ý nghĩa & Giải thích Nghiệp vụ cho Hội đồng</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Frame Stacking</strong><br><span class="math-expr" data-expr="s_t = [x_{t-3}, x_{t-2}, x_{t-1}, x_t]"></span></td>
+                        <td><code>src/common/wrappers.py</code><br>Hàm <code>make_atari_env</code> (dòng 5-37)</td>
+                        <td>Xếp chồng 4 frame xám $84\times 84$ liên tiếp để khôi phục <strong>tính chất Markov</strong> (biểu diễn hướng di chuyển và vận tốc của quả bóng). Nếu chỉ dùng 1 frame tĩnh, Agent không thể nhận biết được bóng đang bay về hướng nào.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Standard Bellman Backup (DQN)</strong><br><span class="math-expr" data-expr="Y_t = R_t + \gamma \max_{a'} Q_{\text{target}}(S_{t+1}, a')"></span></td>
+                        <td><code>src/scratch/dqn_agent.py</code><br>Hàm <code>update</code> (dòng 92-108)</td>
+                        <td>Mục tiêu Bellman cho DQN tiêu chuẩn. Sử dụng mạng Target Network tách biệt để tính giá trị trạng thái kế tiếp $S_{t+1}$, giảm thiểu hiện tượng bất ổn định lan truyền ngược khi mạng Online liên tục cập nhật.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Double DQN Target (DDQN)</strong><br><span class="math-expr" data-expr="Y_t^{\text{DoubleQ}} = R_t + \gamma Q_{\text{target}}(S_{t+1}, \operatorname{argmax}_{a'} Q_{\text{online}}(S_{t+1}, a'))"></span></td>
+                        <td><code>src/scratch/dueling_ddqn_agent.py</code><br>Hàm <code>update</code> (dòng 93-111)</td>
+                        <td>Điểm cải tiến cốt lõi của Double DQN: Mạng Online quyết định hành động tốt nhất $a^*$ tại $S_{t+1}$ qua <code>argmax</code>, nhưng mạng Target định lượng giá trị $Q_{\text{target}}(S_{t+1}, a^*)$. Tách biệt chọn và đánh giá giúp triệt tiêu <strong>Overestimation Bias</strong>.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dueling Q-Value arithmetic</strong><br><span class="math-expr" data-expr="Q(s, a) = V(s) + A(s, a) - \frac{1}{|A|}\sum_{a'} A(s, a')"></span></td>
+                        <td><code>src/scratch/models.py</code><br>Lớp <code>DuelingDQN</code> (dòng 104-115)</td>
+                        <td>Nhánh Value $V(s)$ và Advantage $A(s, a)$ kết hợp với nhau. Phép trừ trung bình Advantage giúp giải quyết <strong>vấn đề xác định duy nhất (identifiability problem)</strong>, giúp huấn luyện cực kỳ ổn định.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PPO Clipped Policy Loss</strong><br><span class="math-expr" data-expr="L^{CLIP}(\theta) = \hat{\mathbb{E}}_t \left[ \min\left(r_t(\theta)\hat{A}_t, \operatorname{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\right) \right]"></span></td>
+                        <td><code>src/scratch/ppo_agent.py</code><br>Hàm <code>update</code> (dòng 180-205)</td>
+                        <td>Hàm mất mát chính sách của PPO. Ép tỷ lệ xác suất chính sách mới/cũ $r_t(\theta)$ nằm trong khoảng $[1-\epsilon, 1+\epsilon]$ để đảm bảo chính sách mới không thay đổi quá xa chính sách cũ (giữ trong <strong>vùng tin cậy - Trust Region</strong>).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GAE (Generalized Advantage Estimation)</strong><br><span class="math-expr" data-expr="\hat{A}_t^{\text{GAE}} = \sum_{l=0}^{\infty} (\gamma\lambda)^l \delta_{t+l}^V"></span><br>với <span class="math-expr" data-expr="\delta_t^V = r_t + \gamma V(s_{t+1}) - V(s_t)"></span></td>
+                        <td><code>src/scratch/ppo_agent.py</code><br>Hàm <code>update</code> (dòng 145-165)</td>
+                        <td>Ước lượng lợi thế tổng quát GAE. Tham số $\lambda$ giúp trượt mượt mà giữa TD(0) (phương sai thấp, bias cao) và Monte Carlo (bias thấp, phương sai cao), giúp cân bằng <strong>Bias-Variance Trade-off</strong> tối ưu.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>RAM uint8 Optimization</strong><br>Lưu <code>np.uint8</code> trên RAM, chia <code>255.0</code> trên GPU</td>
+                        <td><code>src/scratch/replay_buffer.py</code><br>Hàm <code>sample</code> (dòng 76-123)</td>
+                        <td>Lưu ảnh xám ở dạng `uint8` giúp giảm kích thước bộ đệm Replay Buffer xuống 4 lần (chỉ còn ~2.82GB thay vì ~11.28GB). Khi đưa mini-batch lên GPU, việc ép kiểu `float32` và chia `255.0` được thực hiện song song cực nhanh.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
 
-            <!-- Quiz 1 -->
+        <!-- SECTION 8: CÂU HỎI VẤN ĐÁP TƯƠNG TÁC -->
+        <section id="quiz" class="searchable-section">
+            <h2 class="section-title">8. Hệ thống Câu hỏi Vấn đáp Tương tác (Oral Exam Simulator)</h2>
+            <p>Hội đồng thầy cô chắc chắn sẽ đặt các câu hỏi dưới đây để thử thách kiến thức thực tế và lý thuyết của bạn. Hãy tự kiểm tra và xem lời giải thích khoa học chi tiết:</p>
+
+            <!-- Quiz 1: Dueling DQN stream subtraction -->
             <div class="quiz-item" id="quiz-block-1">
-                <div class="quiz-question">Câu hỏi 1: Tại sao Double DQN lại khắc phục được vấn đề Overestimation của DQN gốc?</div>
+                <div class="quiz-question">Câu hỏi 1: Trong Dueling DQN, tại sao chúng ta bắt buộc phải trừ đi trung bình của các Advantage thay vì lấy Max của các Advantage?</div>
                 <div class="quiz-options">
-                    <div class="quiz-option" onclick="selectQuizOption(this, 1, 'A')">A. Nó nhân đôi kích thước của bộ đệm Replay Buffer để học hiệu quả hơn.</div>
-                    <div class="quiz-option" onclick="selectQuizOption(this, 1, 'B')">B. Nó tách biệt việc chọn hành động tốt nhất (bằng Online Net) và việc định lượng giá trị Q của hành động đó (bằng Target Net).</div>
-                    <div class="quiz-option" onclick="selectQuizOption(this, 1, 'C')">C. Nó tăng hệ số chiết khấu gamma lên cao để ưu tiên phần thưởng dài hạn.</div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 1, 'A')">
+                        <span class="quiz-opt-letter">A</span>
+                        <span>Để giảm số lượng tham số mạng neural, giúp tính toán Loss nhanh hơn.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 1, 'B')">
+                        <span class="quiz-opt-letter">B</span>
+                        <span>Ràng buộc toán học giúp giải quyết bài toán không thể xác định duy nhất (identifiability problem) của hai hàm V và A.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 1, 'C')">
+                        <span class="quiz-opt-letter">C</span>
+                        <span>Để mạng luôn thiên vị chọn hành động đứng yên trong game Pong.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 1, 'D')">
+                        <span class="quiz-opt-letter">D</span>
+                        <span>Để triệt tiêu hoàn toàn độ chệch phương sai của mạng Target.</span>
+                    </div>
                 </div>
                 <div style="margin-top: 15px;">
                     <button class="quiz-action-btn" onclick="submitQuizAnswer(1, 'B')">Kiểm tra Đáp án</button>
@@ -1224,18 +1382,139 @@ loss = policy_loss + self.val_coef * value_loss - self.entropy_coef * entropy <s
                 <div class="quiz-feedback" id="quiz-feedback-1"></div>
             </div>
 
-            <!-- Quiz 2 -->
+            <!-- Quiz 2: GAE role in PPO -->
             <div class="quiz-item" id="quiz-block-2">
                 <div class="quiz-question">Câu hỏi 2: Vai trò chính của GAE (Generalized Advantage Estimation) trong PPO là gì?</div>
                 <div class="quiz-options">
-                    <div class="quiz-option" onclick="selectQuizOption(this, 2, 'A')">A. Nhằm cân bằng giữa độ chệch (bias) và phương sai (variance) khi ước lượng giá trị Advantage giúp tối ưu hóa policy ổn định.</div>
-                    <div class="quiz-option" onclick="selectQuizOption(this, 2, 'B')">B. Nhằm đẩy nhanh tốc độ lấy mẫu từ môi trường song song.</div>
-                    <div class="quiz-option" onclick="selectQuizOption(this, 2, 'C')">C. Nhằm mục đích tự động cắt giảm kích thước ảnh trạng thái đầu vào.</div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 2, 'A')">
+                        <span class="quiz-opt-letter">A</span>
+                        <span>Nhằm cân bằng giữa độ chệch (bias) và phương sai (variance) khi ước lượng giá trị Advantage giúp tối ưu hóa policy ổn định.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 2, 'B')">
+                        <span class="quiz-opt-letter">B</span>
+                        <span>Nhằm đẩy nhanh tốc độ lấy mẫu từ môi trường song song.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 2, 'C')">
+                        <span class="quiz-opt-letter">C</span>
+                        <span>Nhằm mục đích tự động cắt giảm kích thước ảnh trạng thái đầu vào.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 2, 'D')">
+                        <span class="quiz-opt-letter">D</span>
+                        <span>Nhằm loại bỏ hoàn toàn sự phụ thuộc vào hàm Critic.</span>
+                    </div>
                 </div>
                 <div style="margin-top: 15px;">
                     <button class="quiz-action-btn" onclick="submitQuizAnswer(2, 'A')">Kiểm tra Đáp án</button>
                 </div>
                 <div class="quiz-feedback" id="quiz-feedback-2"></div>
+            </div>
+
+            <!-- Quiz 3: Double DQN overestimation bias -->
+            <div class="quiz-item" id="quiz-block-3">
+                <div class="quiz-question">Câu hỏi 3: Tại sao Double DQN lại khắc phục được lỗi đánh giá quá cao (Overestimation bias) của DQN tiêu chuẩn?</div>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="selectQuizOption(this, 3, 'A')">
+                        <span class="quiz-opt-letter">A</span>
+                        <span>Nó nhân đôi kích thước của bộ đệm Replay Buffer để học hiệu quả hơn.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 3, 'B')">
+                        <span class="quiz-opt-letter">B</span>
+                        <span>Nó sử dụng mạng Online để chọn hành động tốt nhất, và dùng mạng Target để đánh giá trị số Q của hành động đó.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 3, 'C')">
+                        <span class="quiz-opt-letter">C</span>
+                        <span>Nó đóng băng hoàn toàn mạng Online và chỉ cập nhật mạng Target.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 3, 'D')">
+                        <span class="quiz-opt-letter">D</span>
+                        <span>Nó sử dụng phương pháp Monte Carlo để tìm kiếm hành động tối ưu.</span>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="quiz-action-btn" onclick="submitQuizAnswer(3, 'B')">Kiểm tra Đáp án</button>
+                </div>
+                <div class="quiz-feedback" id="quiz-feedback-3"></div>
+            </div>
+
+            <!-- Quiz 4: Entropy bonus in PPO joint loss -->
+            <div class="quiz-item" id="quiz-block-4">
+                <div class="quiz-question">Câu hỏi 4: Trong PPO tự viết, vai trò của hệ số Entropy bonus trong hàm loss chung (Joint loss) là gì?</div>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="selectQuizOption(this, 4, 'A')">
+                        <span class="quiz-opt-letter">A</span>
+                        <span>Giúp mạng tối ưu hóa tốc độ lan truyền ngược nhanh hơn.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 4, 'B')">
+                        <span class="quiz-opt-letter">B</span>
+                        <span>Khuyến khích Agent tiếp tục thử nghiệm khám phá (exploration) bằng cách phạt chính sách nếu nó quá tự tin vào một hành động duy nhất.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 4, 'C')">
+                        <span class="quiz-opt-letter">C</span>
+                        <span>Cắt giảm tỉ lệ xác suất chính sách mới so với chính sách cũ.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 4, 'D')">
+                        <span class="quiz-opt-letter">D</span>
+                        <span>Loại bỏ hoàn toàn sự phụ thuộc vào hàm Critic.</span>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="quiz-action-btn" onclick="submitQuizAnswer(4, 'B')">Kiểm tra Đáp án</button>
+                </div>
+                <div class="quiz-feedback" id="quiz-feedback-4"></div>
+            </div>
+
+            <!-- Quiz 5: Experimental comparison: PPO vs DQN -->
+            <div class="quiz-item" id="quiz-block-5">
+                <div class="quiz-question">Câu hỏi 5: Tại sao PPO học nhanh hơn và ổn định hơn đáng kể so với DQN trên game Atari Pong?</div>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="selectQuizOption(this, 5, 'A')">
+                        <span class="quiz-opt-letter">A</span>
+                        <span>PPO học On-policy kết hợp nhiều epochs tối ưu hóa trên mỗi tập mẫu giúp tận dụng tối đa dữ liệu thu thập, trong khi DQN học Off-policy dựa vào exploration Epsilon-Greedy rất kém hiệu quả trong môi trường Pong có phần thưởng thưa thớt (sparse reward).</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 5, 'B')">
+                        <span class="quiz-opt-letter">B</span>
+                        <span>PPO sử dụng mạng neural nhỏ hơn DQN 10 lần nên chạy nhanh hơn.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 5, 'C')">
+                        <span class="quiz-opt-letter">C</span>
+                        <span>DQN không hỗ trợ tính toán trên GPU.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 5, 'D')">
+                        <span class="quiz-opt-letter">D</span>
+                        <span>Môi trường Pong không tuân thủ tiến trình quyết định Markov nên DQN không học được.</span>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="quiz-action-btn" onclick="submitQuizAnswer(5, 'A')">Kiểm tra Đáp án</button>
+                </div>
+                <div class="quiz-feedback" id="quiz-feedback-5"></div>
+            </div>
+
+            <!-- Quiz 6: Replay buffer uint8 memory optimization -->
+            <div class="quiz-item" id="quiz-block-6">
+                <div class="quiz-question">Câu hỏi 6: Kỹ thuật tối ưu hóa bộ đệm Replay Buffer lưu kiểu np.uint8 thay vì float32 giúp giảm bao nhiêu dung lượng RAM thực tế?</div>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="selectQuizOption(this, 6, 'A')">
+                        <span class="quiz-opt-letter">A</span>
+                        <span>Tiết kiệm gấp 2 lần dung lượng bộ nhớ.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 6, 'B')">
+                        <span class="quiz-opt-letter">B</span>
+                        <span>Tiết kiệm gấp 4 lần dung lượng bộ nhớ (~2.82GB thay vì ~11.28GB cho 100,000 steps), hạn chế tối đa nguy cơ tràn RAM hệ thống.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 6, 'C')">
+                        <span class="quiz-opt-letter">C</span>
+                        <span>Tiết kiệm gấp 10 lần dung lượng bộ nhớ.</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 6, 'D')">
+                        <span class="quiz-opt-letter">D</span>
+                        <span>Không tiết kiệm dung lượng mà chỉ tăng tốc độ truyền tải mạng.</span>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="quiz-action-btn" onclick="submitQuizAnswer(6, 'B')">Kiểm tra Đáp án</button>
+                </div>
+                <div class="quiz-feedback" id="quiz-feedback-6"></div>
             </div>
         </section>
 
@@ -1304,59 +1583,59 @@ loss = policy_loss + self.val_coef * value_loss - self.entropy_coef * entropy <s
     const codeDetails = {
         'dqn-1': {
             title: "Tính giá trị Q hiện tại của Online Net",
-            desc: "Dùng Online Network dự đoán giá trị Q-value cho toàn bộ 6 hành động có thể thực hiện tại trạng thái `states` hiện tại."
+            desc: "Dùng Online Network dự đoán giá trị Q-value cho toàn bộ 6 hành động. Đầu vào `states` có kích thước <strong>(batch_size, 4, 84, 84)</strong>. Tensor đầu ra `q_values` có kích thước <strong>(batch_size, 6)</strong>."
         },
         'dqn-2': {
             title: "Trích xuất giá trị Q của hành động đã thực hiện",
-            desc: "Dùng hàm `gather(1, actions.unsqueeze(1))` để chỉ lọc ra giá trị Q tương ứng với hành động thực tế mà Agent đã lựa chọn và thực hiện trong quá khứ."
+            desc: "Lọc ra giá trị Q tương ứng với hành động thực tế đã chọn. Đầu vào `actions` có kích thước <strong>(batch_size,)</strong>, sau khi `actions.unsqueeze(1)` tạo kích thước <strong>(batch_size, 1)</strong>. Sau phép toán `gather` và `squeeze(1)`, thu được `state_action_values` có kích thước <strong>(batch_size,)</strong>."
         },
         'dqn-3': {
             title: "Tắt tính toán Gradient cho Target Network",
-            desc: "Bọc trong khối lệnh `with torch.no_grad():` để tắt bộ lưu vết gradient. Việc này giúp tiết kiệm tối đa bộ nhớ VRAM của GPU và tăng tốc tính toán vì ta không cập nhật mạng target bằng lan truyền ngược thông thường."
+            desc: "Khối lệnh `with torch.no_grad():` tắt bộ lưu vết gradient, giúp tiết kiệm tối đa VRAM của GPU và tăng tốc tính toán vì ta không cập nhật mạng target bằng lan truyền ngược thông thường."
         },
         'dqn-4': {
-            title: "Phương trình cập nhật Bellman",
-            desc: "Công thức toán học cốt lõi: Q_kỳ_vọng = Reward + gamma * Q_target(s', max_a) * (1 - done). Nếu trạng thái tiếp theo là kết thúc (done=1), giá trị Q kỳ vọng sẽ chính bằng phần thưởng tức thời."
+            title: "Mục tiêu cập nhật Bellman (DQN)",
+            desc: "Tính toán Q kỳ vọng: `expected = rewards + gamma * next_state_values * (1.0 - dones)`. Tensor `next_states` có kích thước <strong>(batch_size, 4, 84, 84)</strong>, đầu ra `next_state_values` có kích thước <strong>(batch_size,)</strong>. Kết quả `expected_state_action_values` có kích thước <strong>(batch_size,)</strong>."
         },
         'dqn-5': {
             title: "Cắt xén Gradient (Gradient Clipping)",
-            desc: "Áp dụng `clip_grad_norm_` giới hạn norm của gradient tối đa là 10.0. Đây là kỹ thuật vô cùng quan trọng trong Deep RL giúp ngăn chặn hiện tượng bùng nổ gradient làm hỏng mạng khi DQN cập nhật bất ổn định."
+            desc: "Áp dụng `clip_grad_norm_` giới hạn norm của gradient tối đa là 10.0. Đây là kỹ thuật vô cùng quan trọng trong Deep RL giúp ngăn chặn hiện tượng bùng nổ gradient gây phân kỳ mạng."
         },
         'ddqn-1': {
-            title: "Double DQN: Lựa chọn hành động tốt nhất bằng Online Net",
-            desc: "Điểm cải tiến cốt lõi của Double DQN: Dùng mạng đang cập nhật (`online_net`) dự đoán hành động tốt nhất cho trạng thái tiếp theo `next_states` bằng hàm `argmax()`."
+            title: "Double DQN: Lựa chọn hành động bằng Online Net",
+            desc: "Mạng `online_net` dự đoán hành động tốt nhất cho trạng thái tiếp theo `next_states` (shape <strong>(batch_size, 4, 84, 84)</strong>) qua phép toán `argmax(dim=1, keepdim=True)`. Tensor `best_actions` thu được có kích thước <strong>(batch_size, 1)</strong>."
         },
         'ddqn-2': {
             title: "Double DQN: Định giá hành động đó bằng Target Net",
-            desc: "Sau khi `online_net` đã chọn hành động tốt nhất, ta dùng mạng ổn định hơn (`target_net`) để tính toán giá trị Q của hành động này. Cơ chế tách biệt 'chọn hành động' và 'đánh giá hành động' này giúp triệt tiêu hoàn toàn lỗi đánh giá quá cao (Overestimation bias) của DQN gốc."
+            desc: "Dùng mạng `target_net` để định lượng giá trị Q của hành động tốt nhất đã chọn qua hàm `gather(1, best_actions)`. Kết quả `next_state_values` thu được có kích thước <strong>(batch_size,)</strong>."
         },
         'ddqn-3': {
             title: "Mạng Dueling: Tách biệt Value Stream V(s)",
-            desc: "Nhánh `value_stream` chỉ nhận trạng thái `flat_out` và dự đoán một giá trị vô hướng duy nhất biểu diễn giá trị của bản thân trạng thái đó mà không phụ thuộc hành động nào."
+            desc: "Nhánh `value_stream` nhận đầu vào `flat_out` (shape <strong>(batch_size, 3136)</strong>) và dự đoán giá trị vô hướng biểu diễn giá trị trạng thái nền. Tensor đầu ra `values` thu được có kích thước <strong>(batch_size, 1)</strong>."
         },
         'ddqn-4': {
             title: "Công thức kết hợp Dueling Q-Value",
-            desc: "Q(s, a) = V(s) + A(s, a) - trung_bình(A(s, a')). Việc trừ đi trung bình của Advantage giúp tăng tính ổn định toán học, giúp mạng học được lợi thế tương đối của từng hành động so với mặt bằng chung."
+            desc: "Kết hợp Value và Advantage qua công thức: `values + (advantages - advantages.mean(dim=1, keepdim=True))`. Tensor `advantages` có kích thước <strong>(batch_size, 6)</strong>, kết quả đầu ra `q_values` có kích thước <strong>(batch_size, 6)</strong>."
         },
         'ppo-1': {
             title: "Tính toán tỉ số chính sách (Probability Ratio)",
-            desc: "Tỉ số r_t(theta) = pi_new(a|s) / pi_old(a|s). Vì làm việc trong không gian log_prob, ta tính bằng hàm mũ `torch.exp(new_log_probs - old_log_probs)`."
+            desc: "Tỉ số xác suất mới / cũ $r_t(\\theta)$. Do tính toán trong log space, ta lấy `torch.exp(new_log_probs - b_old_log_probs)`. Cả `new_log_probs`, `b_old_log_probs` và tensor kết quả `ratios` đều có kích thước <strong>(batch_size,)</strong>."
         },
         'ppo-2': {
             title: "Cắt xén tỉ số (Policy Clipping)",
-            desc: "Ép giá trị tỉ số r_t nằm chặt chẽ trong khoảng `[1 - clip_ratio, 1 + clip_ratio]` (thường là [0.8, 1.2]). Điều này ngăn không cho chính sách mới thay đổi quá xa so với chính sách cũ, đảm bảo học an toàn."
+            desc: "Hàm `torch.clamp(ratios, 1.0 - clip_ratio, 1.0 + clip_ratio)` giới hạn tỷ lệ xác suất trong khoảng tin cậy `[1-ε, 1+ε]` (thường là `[0.8, 1.2]`). Tensor kết quả `surr2` có kích thước <strong>(batch_size,)</strong>."
         },
         'ppo-3': {
             title: "Hàm mục tiêu bi quan (Pessimistic Objective)",
-            desc: "Lấy giá trị tối thiểu (`torch.min`) giữa hàm chưa cắt xén và hàm cắt xén. Đây là cơ chế cốt lõi của PPO giúp thuật toán cập nhật chính sách một cách thận trọng, cải thiện độ ổn định huấn luyện đáng kể."
+            desc: "Hàm `torch.min(surr1, surr2)` lấy cận dưới bi quan để cập nhật chính sách một cách thận trọng, tránh các bước đi quá xa vùng tin cậy. Kết quả `policy_loss` là một tensor vô hướng (scalar)."
         },
         'ppo-4': {
             title: "Cắt xén hàm mất mát giá trị (Value Function Clipping)",
-            desc: "Tương tự chính sách, hàm mất mát của Value Network cũng được cắt xén xung quanh giá trị dự đoán cũ để đảm bảo mạng Critic không cập nhật quá đột ngột."
+            desc: "Tương tự chính sách, hàm mất mát của Value Network cũng được cắt xén xung quanh giá trị dự đoán cũ để đảm bảo mạng Critic không cập nhật quá đột ngột. Tensor `value_loss` thu được là một tensor vô hướng (scalar)."
         },
         'ppo-5': {
             title: "Hợp nhất các hàm mục tiêu (Joint Loss Function)",
-            desc: "Tổng Loss = Policy Loss + c1 * Value Loss - c2 * Entropy. Dấu trừ trước hệ số Entropy giúp tăng Loss khi chính sách quá tập trung vào 1 hành động duy nhất, khuyến khích Agent tiếp tục thử nghiệm khám phá môi trường."
+            desc: "Tổng Loss được tối ưu hóa đồng thời: `Loss = Policy_Loss + c1 * Value_Loss - c2 * Entropy`. Kết quả tối ưu là một tensor vô hướng (scalar)."
         }
     };
 
@@ -1434,30 +1713,76 @@ loss = policy_loss + self.val_coef * value_loss - self.entropy_coef * entropy <s
         userAnswers[questionNum] = optionLetter;
     }
 
+    const quizExplanations = {
+        1: "Chính xác tuyệt đối! Dueling DQN sử dụng phép trừ trung bình để giải quyết bài toán không xác định duy nhất (identifiability problem). Công thức kết hợp: <span class=\"math-expr\" data-expr=\"Q(s, a) = V(s) + A(s, a) - \\frac{1}{|A|}\\sum_{a'} A(s, a')\"></span>. Nếu không trừ trung bình, ta có thể cộng một hằng số vào V và trừ đi hằng số đó ở A mà hàm Q vẫn không đổi, khiến mạng không thể hội tụ ổn định.",
+        2: "Chính xác tuyệt đối! GAE cân bằng giữa Bias (độ chệch) và Variance (phương sai) thông qua tham số <span class=\"math-expr\" data-expr=\"\\lambda\"></span>. Công thức lợi thế GAE đệ quy: <span class=\"math-expr\" data-expr=\"\\hat{A}_t^{\\text{GAE}} = \\sum_{l=0}^{\\infty} (\\gamma\\lambda)^l \\delta_{t+l}^V\"></span>. Khi <span class=\"math-expr\" data-expr=\"\\lambda=0\"></span>, nó là TD(0) (bias cao, variance thấp). Khi <span class=\"math-expr\" data-expr=\"\\lambda=1\"></span>, nó là Monte Carlo (bias thấp, variance cao).",
+        3: "Chính xác tuyệt đối! Double DQN tách biệt hoàn toàn hai nhiệm vụ: Mạng Online quyết định hành động tốt nhất <span class=\"math-expr\" data-expr=\"a^*\"></span> bằng phép toán <span class=\"math-expr\" data-expr=\"\\operatorname{argmax}_a Q_{\\text{online}}(S_{t+1}, a)\"></span>, còn mạng Target đóng vai trò đánh giá khách quan giá trị Q-value của hành động đó: <span class=\"math-expr\" data-expr=\"Q_{\\text{target}}(S_{t+1}, a^*)\"></span>. Điều này ngăn chặn triệt để hiện tượng đánh giá quá cao (Overestimation bias). Công thức: <span class=\"math-expr\" data-expr=\"Y_t^{\\text{DoubleQ}} = R_t + \\gamma Q_{\\text{target}}(S_{t+1}, \\operatorname{argmax}_a Q_{\\text{online}}(S_{t+1}, a))\"></span>.",
+        4: "Chính xác tuyệt đối! Hệ số Entropy bonus trong hàm loss chung của PPO: <span class=\"math-expr\" data-expr=\"L^{\\text{Joint}} = L^{\\text{CLIP}} + c_1 L^{\\text{VF}} - c_2 S\"></span> (với <span class=\"math-expr\" data-expr=\"S\"></span> là entropy của chính sách). Trừ đi entropy khuyến khích chính sách phân tán xác suất đều hơn, thúc đẩy Agent khám phá mạnh mẽ các hành động mới để tránh cực trị cục bộ.",
+        5: "Chính xác tuyệt đối! PPO là học On-policy kết hợp tối ưu nhiều epochs trên mỗi batch mẫu giúp tận dụng tối đa dữ liệu thu thập. Trong khi đó, DQN học Off-policy dựa vào Epsilon-Greedy cực kỳ kém hiệu quả trong môi trường game Pong nơi phần thưởng rất thưa thớt (sparse reward: chỉ xuất hiện khi thắng/thua 1 hiệp đấu).",
+        6: "Chính xác tuyệt đối! Trạng thái frame stack có kích thước <span class=\"math-expr\" data-expr=\"4 \\times 84 \\times 84\"></span>. Lưu kiểu `float32` chiếm <span class=\"math-expr\" data-expr=\"4 \\times 84 \\times 84 \\times 4 = 112,896\"></span> bytes per step. Lưu kiểu `uint8` chỉ chiếm <span class=\"math-expr\" data-expr=\"28,224\"></span> bytes per step (giảm chính xác 4 lần). Điều này cho phép lưu trữ 100,000 steps chỉ với ~2.82GB RAM hệ thống thay vì ~11.28GB RAM."
+    };
+
     function submitQuizAnswer(questionNum, correctAnswer) {
         const selectedLetter = userAnswers[questionNum];
         const feedbackEl = document.getElementById(`quiz-feedback-${questionNum}`);
+        const quizBlock = document.getElementById(`quiz-block-${questionNum}`);
 
         if (!selectedLetter) {
             feedbackEl.className = "quiz-feedback incorrect";
-            feedbackEl.innerText = "Vui lòng lựa chọn một phương án trước khi kiểm tra đáp án.";
+            feedbackEl.innerHTML = "Vui lòng lựa chọn một phương án trước khi kiểm tra đáp án.";
             feedbackEl.style.display = "block";
             return;
         }
 
+        // Highlight options
+        const optionsElements = quizBlock.querySelectorAll('.quiz-option');
+        optionsElements.forEach(el => {
+            const letter = el.querySelector('.quiz-opt-letter').innerText;
+            if (letter === correctAnswer) {
+                el.classList.add('correct');
+            } else if (letter === selectedLetter && selectedLetter !== correctAnswer) {
+                el.classList.add('incorrect');
+            }
+        });
+
         if (selectedLetter === correctAnswer) {
             feedbackEl.className = "quiz-feedback correct";
-            if (questionNum === 1) {
-                feedbackEl.innerText = "Chính xác tuyệt đối! Double DQN tách biệt việc 'lựa chọn hành động tốt nhất' (sử dụng Online Net) và 'định lượng giá trị' của hành động đó (sử dụng Target Net). Cơ chế này giúp loại bỏ hoàn toàn hiện tượng đánh giá quá cao (Overestimation bias).";
-            } else if (questionNum === 2) {
-                feedbackEl.innerText = "Chính xác tuyệt đối! GAE cung cấp một tham số lambda để trượt mượt mà giữa TD(0) (độ chệch cao, phương sai thấp) và Monte Carlo (độ chệch thấp, phương sai cao), giúp việc ước lượng Advantage ổn định và tối ưu hóa chính sách an toàn.";
-            }
+            feedbackEl.innerHTML = `<strong>Chính xác!</strong> ${quizExplanations[questionNum]}`;
         } else {
             feedbackEl.className = "quiz-feedback incorrect";
-            feedbackEl.innerText = "Rất tiếc, câu trả lời chưa chính xác. Bạn hãy suy nghĩ lại hoặc tham khảo tài liệu phân tích ở các phần trên nhé!";
+            feedbackEl.innerHTML = `<strong>Chưa chính xác.</strong> Đáp án đúng là <strong>${correctAnswer}</strong>. <br><br> ${quizExplanations[questionNum]}`;
         }
+        
         feedbackEl.style.display = "block";
+        
+        // Render math in feedback box specifically
+        feedbackEl.querySelectorAll('.math-expr').forEach(mathEl => {
+            const expr = mathEl.getAttribute('data-expr');
+            katex.render(expr, mathEl, { throwOnError: false });
+        });
     }
+
+    /* ==========================================================================
+       6.5. TỰ ĐỘNG KHỞI CHẠY KATEX RENDER TOÁN HỌC
+       ========================================================================== */
+    function renderMath() {
+        document.querySelectorAll('.math-expr').forEach(el => {
+            const expr = el.getAttribute('data-expr');
+            const isDisplay = el.parentNode.classList.contains('formula-container') || el.parentNode.tagName === 'TD' && el.previousSibling === null;
+            try {
+                katex.render(expr, el, {
+                    throwOnError: false,
+                    displayMode: isDisplay
+                });
+            } catch (err) {
+                el.innerHTML = `<span style="color:red">${expr}</span>`;
+            }
+        });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        renderMath();
+    });
 
     /* ==========================================================================
        7. SAO CHÉP LỆNH CLI NHANH
