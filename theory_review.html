@@ -922,11 +922,134 @@
                     <div class="formula-hint">Bấm để khám phá</div>
                 </div>
             </div>
+
+            <!-- CARD 1.5: MARKOV REWARD PROCESS -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Markov Reward Process (MRP) & Nghiệm giải tích</h3>
+                    <span class="card-badge">Lý thuyết nền tảng</span>
+                </div>
+                <p>
+                    Trước khi mô hình hóa hành động, ta nghiên cứu trạng thái trung gian **Markov Reward Process (MRP)**. MRP là một bộ 4 thành phần <span class="math-expr" data-expr="\langle \mathcal{X}, \mathcal{P}, \mathcal{R}, \gamma \rangle"></span>, trong đó không có sự can thiệp của hành động quyết định (<span class="math-expr" data-expr="\mathcal{U}"></span>).
+                </p>
+                <p>
+                    Phương trình Bellman cho MRP thể hiện mối liên hệ đệ quy của hàm giá trị trạng thái kỳ vọng:
+                </p>
+                <div class="formula-container" data-expr="V(\state) = \mathcal{R}(\state) + \gamma \sum_{\state'} \mathcal{P}(\state' \vert \state) V(\state')">
+                    <span class="math-expr" data-expr="V(\state) = \mathcal{R}(\state) + \gamma \sum_{\state'} \mathcal{P}(\state' \vert \state) V(\state')"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+                <p>
+                    Đối với một MRP hữu hạn có $N$ trạng thái, phương trình Bellman có thể được biểu diễn dưới dạng ma trận và giải trực tiếp bằng nghiệm giải tích (Closed-form Analytical Solution) với độ phức tạp tính toán là $\mathcal{O}(N^3)$:
+                </p>
+                <div class="formula-container" data-expr="\mathbf{V} = (\mathbf{I} - \gamma \mathbf{P})^{-1} \mathbf{R}">
+                    <span class="math-expr" data-expr="\mathbf{V} = (\mathbf{I} - \gamma \mathbf{P})^{-1} \mathbf{R}"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+            </div>
+
+            <!-- CARD 1.6: DYNAMIC PROGRAMMING -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Dynamic Programming: Bellman Optimality & Lặp chính sách</h3>
+                    <span class="card-badge">Dynamic Programming</span>
+                </div>
+                <p>
+                    Khi môi trường có mô hình chuyển trạng thái hoàn chỉnh (Model-based), ta sử dụng **Dynamic Programming (DP)** để giải MDP tối ưu. Trọng tâm là tìm kiếm hàm Q-value tối ưu thỏa mãn **Bellman Optimality Equation**:
+                </p>
+                <div class="formula-container" data-expr="\qval^*(\state, \action) = \mathcal{R}(\state, \action) + \gamma \sum_{\state'} \mathcal{P}(\state' \vert \state, \action) \max_{\action'} \qval^*(\state', \action')">
+                    <span class="math-expr" data-expr="\qval^*(\state, \action) = \mathcal{R}(\state, \action) + \gamma \sum_{\state'} \mathcal{P}(\state' \vert \state, \action) \max_{\action'} \qval^*(\state', \action')"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+                <p>Hai thuật toán DP kinh điển để giải toán tử này:</p>
+                <ol style="margin-left: 2rem; margin-bottom: 1.5rem;">
+                    <li><strong>Policy Iteration (Lặp chính sách):</strong> Gồm 2 bước tuần hoàn: (1) **Policy Evaluation** - Lặp phương trình Bellman để đánh giá chính sách hiện tại; (2) **Policy Improvement** - Cải tiến chính sách một cách tham lam qua <span class="math-expr" data-expr="\policy'(\state) = \operatorname{argmax}_{\action} \qval^{\policy}(\state, \action)"></span>.</li>
+                    <li><strong>Value Iteration (Lặp giá trị):</strong> Áp dụng trực tiếp toán tử tối ưu Bellman Optimality làm luật cập nhật lặp cho đến khi hội tụ về hàm giá trị tối ưu mà không cần theo dõi chính sách tường minh.</li>
+                </ol>
+            </div>
             
         </section>
 
         <!-- VIEW 2: DQN -->
         <section id="view-dqn" class="section-view">
+            
+            <!-- CARD 2.2: MODEL-FREE PREDICTION -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Học không mô hình: Monte Carlo & Temporal Difference</h3>
+                    <span class="card-badge">Model-Free Prediction</span>
+                </div>
+                <p>
+                    Khi môi trường không có mô hình chuyển trạng thái <span class="math-expr" data-expr="\transition"></span> (Model-free) như trong các trò chơi Atari phức tạp (Pong), Agent bắt buộc phải học trực tiếp giá trị của các trạng thái thông qua các mẫu dữ liệu thực tế trải nghiệm.
+                </p>
+                <p>
+                    Hai phương pháp ước lượng giá trị trạng thái cơ bản nhất trong Model-Free Prediction bao gồm:
+                </p>
+                <ol style="margin-left: 2rem; margin-bottom: 1.5rem;">
+                    <li>
+                        <strong>Monte Carlo (MC) Methods:</strong> Học trực tiếp từ các tập trải nghiệm hoàn chỉnh (Complete Episodes). Giá trị trạng thái được cập nhật bằng cách lấy trung bình phần thưởng thực tế tích lũy <span class="math-expr" data-expr="G_k"></span> nhận được từ trạng thái đó đến khi kết thúc tập chơi:
+                        <div class="formula-container" data-expr="V(\state_k) \leftarrow V(\state_k) + \alpha \left[ G_k - V(\state_k) \right]">
+                            <span class="math-expr" data-expr="V(\state_k) \leftarrow V(\state_k) + \alpha \left[ G_k - V(\state_k) \right]"></span>
+                            <div class="formula-hint">Bấm để khám phá</div>
+                        </div>
+                    </li>
+                    <li>
+                        <strong>Temporal Difference (TD) Learning:</strong> Học trực tiếp sau từng bước đi độc lập (1-step TD hay TD(0)) bằng cách ước lượng dựa trên một ước lượng khác (**Bootstrapping**), không cần đợi đến khi tập chơi kết thúc:
+                        <div class="formula-container" data-expr="V(\state_k) \leftarrow V(\state_k) + \alpha \left[ \reward_{k+1} + \gamma V(\stateNext) - V(\state_k) \right]">
+                            <span class="math-expr" data-expr="V(\state_k) \leftarrow V(\state_k) + \alpha \left[ \reward_{k+1} + \gamma V(\stateNext) - V(\state_k) \right]"></span>
+                            <div class="formula-hint">Bấm để khám phá</div>
+                        </div>
+                        Trong đó, hiệu số bên trong ngoặc vuông được gọi là **Temporal Difference Error (TD Error)**, ký hiệu là <span class="math-expr" data-expr="\delta_k"></span>, biểu thị sai lệch giữa ước lượng mới và cũ:
+                        <div class="formula-container" data-expr="\delta_k = \reward_{k+1} + \gamma V(\stateNext) - V(\state_k)">
+                            <span class="math-expr" data-expr="\delta_k = \reward_{k+1} + \gamma V(\stateNext) - V(\state_k)"></span>
+                            <div class="formula-hint">Bấm để khám phá</div>
+                        </div>
+                    </li>
+                </ol>
+                <p><strong>So sánh thuộc tính Bias-Variance (Độ lệch - Phương sai):</strong></p>
+                <ul>
+                    <li><strong>Monte Carlo:</strong> Không có chệch (Unbiased) vì sử dụng phần thưởng tích lũy thực tế <span class="math-expr" data-expr="G_k"></span> từ đầu tới cuối, nhưng có <strong>phương sai (Variance) cực lớn</strong> do tích lũy nhiều yếu tố ngẫu nhiên trong suốt quá trình. Chỉ áp dụng được cho các tác vụ có hồi kết (Episodic tasks).</li>
+                    <li><strong>Temporal Difference:</strong> Có chệch (Biased) vì sử dụng bootstrap từ ước lượng chưa hoàn hảo của trạng thái kế tiếp, nhưng có <strong>phương sai cực thấp (Low Variance)</strong>. TD học online theo từng bước đi và áp dụng tốt cho cả tác vụ vô hạn (Continuing tasks).</li>
+                    <li><em>Đặc thù đồ án Pong:</em> Pong có thể kéo dài hàng ngàn bước cho mỗi tập chơi. Nếu sử dụng MC, quá trình cập nhật sẽ cực kỳ chậm và phương sai của mẫu gradient quá lớn gây phân kỳ mạng. TD giúp mô hình học và cập nhật ngay sau mỗi pha đánh bóng, giúp huấn luyện ổn định hơn nhiều.</li>
+                </ul>
+            </div>
+
+            <!-- CARD 2.3: TABULAR TD CONTROL -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Tabular TD Control: SARSA vs Q-Learning</h3>
+                    <span class="card-badge">Model-Free Control</span>
+                </div>
+                <p>
+                    Để tối ưu hóa hành vi không cần mô hình, ta áp dụng TD để ước lượng trực tiếp giá trị của các cặp trạng thái-hành động (Q-value). Hai thuật toán điều khiển bảng (Tabular Control) kinh điển nhất là SARSA và Q-learning.
+                </p>
+                <p>
+                    Sự khác biệt cốt lõi nằm ở cách thức cập nhật và chính sách hành động:
+                </p>
+                <ul style="margin-left: 2rem; margin-bottom: 1.5rem; list-style-type: square;">
+                    <li>
+                        <strong>SARSA (On-policy TD Control):</strong> Cập nhật giá trị hành động dựa trên hành động tiếp theo <span class="math-expr" data-expr="\actionNext"></span> được chọn trực tiếp từ chính sách <span class="math-expr" data-expr="\policy"></span> hiện hành:
+                        <div class="formula-container" data-expr="\qval(\state_k, \action_k) \leftarrow \qval(\state_k, \action_k) + \alpha \left[ \reward + \gamma \qval(\stateNext, \actionNext) - \qval(\state_k, \action_k) \right]">
+                            <span class="math-expr" data-expr="\qval(\state_k, \action_k) \leftarrow \qval(\state_k, \action_k) + \alpha \left[ \reward + \gamma \qval(\stateNext, \actionNext) - \qval(\state_k, \action_k) \right]"></span>
+                            <div class="formula-hint">Bấm để khám phá</div>
+                        </div>
+                    </li>
+                    <li>
+                        <strong>Q-Learning (Off-policy TD Control):</strong> Cập nhật giá trị hành động dựa trên hành động tốt nhất có thể ở trạng thái kế tiếp, bỏ qua hành động thực tế sẽ được thực thi:
+                        <div class="formula-container" data-expr="\qval(\state_k, \action_k) \leftarrow \qval(\state_k, \action_k) + \alpha \left[ \reward + \gamma \max_{u} \qval(\stateNext, u) - \qval(\state_k, \action_k) \right]">
+                            <span class="math-expr" data-expr="\qval(\state_k, \action_k) \leftarrow \qval(\state_k, \action_k) + \alpha \left[ \reward + \gamma \max_{u} \qval(\stateNext, u) - \qval(\state_k, \action_k) \right]"></span>
+                            <div class="formula-hint">Bấm để khám phá</div>
+                        </div>
+                    </li>
+                </ul>
+                <p><strong>So sánh & Liên hệ với Deep Q-Network (DQN):</strong></p>
+                <ul>
+                    <li><strong>On-policy (SARSA):</strong> Học về hành vi thực tế của Agent bao gồm cả các hành động khám phá ngẫu nhiên. SARSA có xu hướng an toàn hơn (ví dụ: tránh đi sát rìa nguy hiểm vì sợ hành động ngẫu nhiên gây rơi ngã).</li>
+                    <li><strong>Off-policy (Q-learning):</strong> Học về chính sách tối ưu (Greedy policy) độc lập với chiến lược khám phá hiện tại. Q-learning giả định tương lai luôn chọn hành động tốt nhất nên táo bạo hơn.</li>
+                    <li><em>Mối liên kết với DQN:</em> DQN là sự kết hợp của mạng neural phi tuyến để xấp xỉ hóa hàm Q-value kế thừa trực tiếp từ <strong>Q-learning (Off-policy)</strong>. Tính chất Off-policy là bắt buộc để sử dụng cơ chế <strong>Experience Replay</strong>. Vì Replay Buffer lưu trữ các dữ liệu lịch sử được tạo ra bởi các chính sách cũ (behavior policy), DQN có thể tái sử dụng chúng để huấn luyện chính sách hiện tại (target policy). Nếu áp dụng một thuật toán On-policy như SARSA, việc lưu trữ và huấn luyện lại dữ liệu cũ sẽ vi phạm nghiêm trọng tính chất phân phối dữ liệu huấn luyện!</li>
+                </ul>
+            </div>
+
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Deep Q-Network (DQN) chuẩn tắc</h3>
@@ -1078,47 +1201,140 @@
 
         <!-- VIEW 4: PPO -->
         <section id="view-ppo" class="section-view">
+
+            <!-- CARD 4.1: POLICY GRADIENT & REINFORCE -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Gradient chính sách: Định lý Policy Gradient & REINFORCE</h3>
+                    <span class="card-badge">Policy-based Foundation</span>
+                </div>
+                <p>
+                    Ngược lại với dòng thuật toán Value-based (như DQN ước lượng giá trị hành động rồi chọn cực đại), lớp thuật toán <strong>Policy-based</strong> tham số hóa trực tiếp chính sách hành động <span class="math-expr" data-expr="\policy(\action \vert \state, \weights)"></span> (xác suất chọn hành động) và tối ưu hóa bộ tham số <span class="math-expr" data-expr="\weights"></span> nhằm cực đại hóa kỳ vọng của tổng phần thưởng chiết khấu <span class="math-expr" data-expr="J(\weights)"></span>.
+                </p>
+                <p>
+                    <strong>Policy Gradient Theorem (Định lý Gradient chính sách):</strong> Chứng minh toán học kinh điển cho phép ta tính toán gradient đạo hàm của hàm mục tiêu <span class="math-expr" data-expr="J(\weights)"></span> một cách tường minh mà không cần biết mô hình chuyển trạng thái phức tạp của môi trường:
+                </p>
+                <div class="formula-container" data-expr="\nabla_{\weights} J(\weights) = \mathbb{E}_{\state \sim d^{\policy}, \action \sim \policy} \left[ \nabla_{\weights} \log \policy(\action \vert \state, \weights) \qval^{\policy}(\state, \action) \right]">
+                    <span class="math-expr" data-expr="\nabla_{\weights} J(\weights) = \mathbb{E}_{\state \sim d^{\policy}, \action \sim \policy} \left[ \nabla_{\weights} \log \policy(\action \vert \state, \weights) \qval^{\policy}(\state, \action) \right]"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+                <p>
+                    <strong>Thuật toán REINFORCE (Monte Carlo Policy Gradient):</strong> Thuật toán Policy-based cơ bản nhất. REINFORCE sử dụng phần thưởng thực tế tích lũy <span class="math-expr" data-expr="G_k"></span> nhận được từ một tập chạy đầy đủ để làm giá trị ước lượng cho hàm <span class="math-expr" data-expr="\qval^\policy(\state_k, \action_k)"></span> chưa biết:
+                </p>
+                <div class="formula-container" data-expr="\weights \leftarrow \weights + \alpha G_k \nabla_{\weights} \log \policy(\action_k \vert \state_k, \weights)">
+                    <span class="math-expr" data-expr="\weights \leftarrow \weights + \alpha G_k \nabla_{\weights} \log \policy(\action_k \vert \state_k, \weights)"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+                <p><strong>Baseline Subtraction (Trừ Baseline) & Sự chuyển giao sang Actor-Critic:</strong></p>
+                <ul>
+                    <li>Mặc dù REINFORCE đơn giản và không chệch (Unbiased), nó chịu ảnh hưởng từ <strong>phương sai (Variance) cực kỳ lớn</strong> do giá trị phần thưởng <span class="math-expr" data-expr="G_k"></span> tích lũy nhiễu ngẫu nhiên từ quá nhiều bước tương lai.</li>
+                    <li>Để giải quyết vấn đề này, ta trừ đi một giá trị độc lập hành động gọi là <strong>Baseline</strong> <span class="math-expr" data-expr="V(\state)"></span> (ước lượng giá trị trung bình của trạng thái hiện tại). Việc trừ Baseline được chứng minh toán học là **không làm thay đổi kỳ vọng của Gradient** nhưng giúp **triệt tiêu phương sai cực lớn** một cách thần kỳ:
+                        <div class="formula-container" data-expr="\nabla_{\weights} J(\weights) = \mathbb{E} \left[ \nabla_{\weights} \log \policy(\action \vert \state, \weights) \left( \qval^{\policy}(\state, \action) - V(\state) \right) \right] = \mathbb{E} \left[ \nabla_{\weights} \log \policy(\action \vert \state, \weights) A(\state, \action) \right]">
+                            <span class="math-expr" data-expr="\nabla_{\weights} J(\weights) = \mathbb{E} \left[ \nabla_{\weights} \log \policy(\action \vert \state, \weights) \left( \qval^{\policy}(\state, \action) - V(\state) \right) \right] = \mathbb{E} \left[ \nabla_{\weights} \log \policy(\action \vert \state, \weights) A(\state, \action) \right]"></span>
+                            <div class="formula-hint">Bấm để khám phá</div>
+                        </div>
+                    </li>
+                    <li>Hiệu số <span class="math-expr" data-expr="\qval(\state, \action) - V(\state)"></span> được gọi là **Advantage Function (Hàm Lợi thế)** <span class="math-expr" data-expr="A(\state, \action)"></span>, cho biết hành động được thực hiện tốt hơn trung bình bao nhiêu. Ý tưởng này dẫn trực tiếp tới kiến trúc **Actor-Critic**: Actor học chính sách hành động <span class="math-expr" data-expr="\policy"></span>, còn Critic học cách ước lượng hàm trị số trạng thái <span class="math-expr" data-expr="V(\state)"></span> đóng vai trò Baseline để tính toán Lợi thế.</li>
+                </ul>
+            </div>
+
+            <!-- CARD 4.2: MULTI-STEP BOOTSTRAPPING & GAE -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Bootstrapping đa bước: n-step Return & GAE</h3>
+                    <span class="card-badge">Advantage Estimation</span>
+                </div>
+                <p>
+                    Để tối ưu hóa chính sách trong Actor-Critic và PPO, việc ước lượng hàm Lợi thế <span class="math-expr" data-expr="A(\state, \action)"></span> chính xác đóng vai trò quyết định. Ta cần một mốc ước lượng tốt cho hàm giá trị Q.
+                </p>
+                <p>
+                    <strong>n-step Return (Phần thưởng đa bước):</strong> Đóng vai trò cầu nối dung hòa hoàn hảo giữa 1-step TD (bias cao, variance thấp) và Monte Carlo (bias thấp, variance cực cao).
+                </p>
+                <div class="formula-container" data-expr="G_{k:k+n} = \reward_{k+1} + \gamma \reward_{k+2} + \dots + \gamma^{n-1} \reward_{k+n} + \gamma^n V(\state_{k+n})">
+                    <span class="math-expr" data-expr="G_{k:k+n} = \reward_{k+1} + \gamma \reward_{k+2} + \dots + \gamma^{n-1} \reward_{k+n} + \gamma^n V(\state_{k+n})"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+                <p>
+                    <strong>Generalized Advantage Estimation (GAE):</strong> PPO sử dụng phương pháp ước lượng Advantage đặc biệt tinh tế này. GAE được định nghĩa là trung bình trọng số chiết khấu mũ <span class="math-expr" data-expr="\lambda"></span> của toàn bộ các ước lượng n-step Return từ 1 đến vô hạn:
+                </p>
+                <div class="formula-container" data-expr="\hat{a}_k^{(\gamma, \lambda)} = \sum_{i=0}^{\infty} (\gamma\lambda)^i \delta_{k+i}">
+                    <span class="math-expr" data-expr="\hat{a}_k^{(\gamma, \lambda)} = \sum_{i=0}^{\infty} (\gamma\lambda)^i \delta_{k+i}"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+                <p>Trong đó, <span class="math-expr" data-expr="\delta_k"></span> là sai số Temporal Difference truyền thống của Critic:</p>
+                <div class="formula-container" data-expr="\delta_k = \reward_{k+1} + \gamma V(\stateNext) - V(\state_k)">
+                    <span class="math-expr" data-expr="\delta_k = \reward_{k+1} + \gamma V(\stateNext) - V(\state_k)"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+                <p><strong>Cơ chế dung hòa Bias-Variance thông qua hệ số <span class="math-expr" data-expr="\lambda"></span>:</strong></p>
+                <ul>
+                    <li><strong>Khi <span class="math-expr" data-expr="\lambda = 0"></span>:</strong> Ước lượng trở thành <span class="math-expr" data-expr="\hat{a}_k = \delta_k"></span> (1-step TD). Đây là ước lượng có **độ chệch lớn (high bias)** do bootstrap sớm nhưng có **phương sai cực thấp (low variance)** do không tích lũy sai số tương lai.</li>
+                    <li><strong>Khi <span class="math-expr" data-expr="\lambda = 1"></span>:</strong> Ước lượng trở thành Monte Carlo đầy đủ không chệch nhưng có **phương sai vô hạn (high variance)** do tích hợp quá nhiều nhiễu từ các hành động ngẫu nhiên trong chuỗi.</li>
+                    <li><strong>Trong thực tế Pong:</strong> Ta chọn giá trị <span class="math-expr" data-expr="\lambda \in [0.9, 0.98]"></span> (đặc biệt phổ biến là <span class="math-expr" data-expr="0.95"></span>) để đạt điểm cân bằng vàng giữa Bias và Variance, giúp PPO hội tụ vô cùng mượt mà.</li>
+                </ul>
+            </div>
+
+            <!-- CARD 4.3: PPO SCRATCH -->
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Proximal Policy Optimization (PPO) Scratch</h3>
                     <span class="card-badge">Policy-based Scratch</span>
                 </div>
                 <p>
-                    Khác với DQN ước lượng giá trị, **PPO** thuộc họ **Policy Gradient** - học trực tiếp chính sách hành động <span class="math-expr" data-expr="\policy(u \vert x, \boldsymbol{\theta})"></span>. Để tối ưu hóa và ngăn chặn các bước cập nhật chính sách quá lớn gây bất ổn định, PPO áp dụng cơ chế Clipped Surrogate Objective cực kỳ thông minh.
+                    Kế thừa các ưu điểm từ Actor-Critic và GAE, **PPO** là thuật toán tối ưu hóa chính sách thuộc vùng tin cậy. Để tối ưu hóa và ngăn chặn các bước cập nhật chính sách quá lớn gây bất ổn định học tập, PPO áp dụng cơ chế Clipped Surrogate Objective cực kỳ đơn giản và hiệu quả.
                 </p>
                 <p>
-                    Tỉ lệ phân bố xác suất chính sách mới so với chính sách cũ:
+                    Tỉ lệ phân bố xác suất chính sách mới đang huấn luyện so với chính sách cũ lưu trữ từ đợt rollout:
                 </p>
-                <div class="formula-container" data-expr="r_k(\boldsymbol{\theta}) = \frac{\pi(u_k \vert x_k, \boldsymbol{\theta})}{\pi(u_k \vert x_k, \boldsymbol{\theta}_{\text{old}})}">
-                    <span class="math-expr" data-expr="r_k(\boldsymbol{\theta}) = \frac{\pi(u_k \vert x_k, \boldsymbol{\theta})}{\pi(u_k \vert x_k, \boldsymbol{\theta}_{\text{old}})}"></span>
+                <div class="formula-container" data-expr="r_k(\weights) = \frac{\policy(\action_k \vert \state_k, \weights)}{\policy(\action_k \vert \state_k, \weights_{\text{old}})}">
+                    <span class="math-expr" data-expr="r_k(\weights) = \frac{\policy(\action_k \vert \state_k, \weights)}{\policy(\action_k \vert \state_k, \weights_{\text{old}})}"></span>
                     <div class="formula-hint">Bấm để khám phá</div>
                 </div>
 
                 <p>Mục tiêu tối ưu Clipped Surrogate Loss giới hạn cập nhật chính sách trong khoảng <span class="math-expr" data-expr="[1-\epsilon, 1+\epsilon]"></span>:</p>
-                <div class="formula-container" data-expr="L^{CLIP}(\boldsymbol{\theta}) = \hat{\mathbb{E}}_k \left[ \min\left(r_k(\boldsymbol{\theta})\hat{a}_k, \operatorname{clip}(r_k(\boldsymbol{\theta}), 1-\epsilon, 1+\epsilon)\hat{a}_k\right) \right]">
-                    <span class="math-expr" data-expr="L^{CLIP}(\boldsymbol{\theta}) = \hat{\mathbb{E}}_k \left[ \min\left(r_k(\boldsymbol{\theta})\hat{a}_k, \operatorname{clip}(r_k(\boldsymbol{\theta}), 1-\epsilon, 1+\epsilon)\hat{a}_k\right) \right]"></span>
-                    <div class="formula-hint">Bấm để khám phá</div>
-                </div>
-
-                <p>
-                    Để tính toán lợi thế <span class="math-expr" data-expr="\hat{a}_k"></span> hiệu quả với phương sai thấp và độ lệch ít, PPO sử dụng bộ ước lượng lợi thế tổng quát **Generalized Advantage Estimation (GAE)**:
-                </p>
-                <div class="formula-container" data-expr="\delta_k = r_k + \gamma v(x_{k+1}) - v(x_k)">
-                    <span class="math-expr" data-expr="\delta_k = r_k + \gamma v(x_{k+1}) - v(x_k)"></span>
-                    <div class="formula-hint">Bấm để khám phá</div>
-                </div>
-                <div class="formula-container" data-expr="\hat{a}_k^{(\gamma, \lambda)} = \sum_{i=0}^{\infty} (\gamma\lambda)^i \delta_{k+i}">
-                    <span class="math-expr" data-expr="\hat{a}_k^{(\gamma, \lambda)} = \sum_{i=0}^{\infty} (\gamma\lambda)^i \delta_{k+i}"></span>
+                <div class="formula-container" data-expr="L^{CLIP}(\weights) = \hat{\mathbb{E}}_k \left[ \min\left(r_k(\weights)\hat{a}_k, \operatorname{clip}(r_k(\weights), 1-\epsilon, 1+\epsilon)\hat{a}_k\right) \right]">
+                    <span class="math-expr" data-expr="L^{CLIP}(\weights) = \hat{\mathbb{E}}_k \left[ \min\left(r_k(\weights)\hat{a}_k, \operatorname{clip}(r_k(\weights), 1-\epsilon, 1+\epsilon)\hat{a}_k\right) \right]"></span>
                     <div class="formula-hint">Bấm để khám phá</div>
                 </div>
                 
                 <p>
                     Hàm mục tiêu toàn phần của PPO kết hợp cùng hàm giảm lỗi trị số Critic (VF Loss) và Entropy Bonus tăng tính khám phá:
                 </p>
-                <div class="formula-container" data-expr="L^{PPO}(\boldsymbol{\theta}) = \hat{\mathbb{E}}_k \left[ L^{CLIP}(\boldsymbol{\theta}) - c_1 L^{VF}(\boldsymbol{\theta}) + c_2 S[\pi](\state_k) \right]">
-                    <span class="math-expr" data-expr="L^{PPO}(\boldsymbol{\theta}) = \hat{\mathbb{E}}_k \left[ L^{CLIP}(\boldsymbol{\theta}) - c_1 L^{VF}(\boldsymbol{\theta}) + c_2 S[\pi](\state_k) \right]"></span>
+                <div class="formula-container" data-expr="L^{PPO}(\weights) = \hat{\mathbb{E}}_k \left[ L^{CLIP}(\weights) - c_1 L^{VF}(\weights) + c_2 S[\policy](\state_k) \right]">
+                    <span class="math-expr" data-expr="L^{PPO}(\weights) = \hat{\mathbb{E}}_k \left[ L^{CLIP}(\weights) - c_1 L^{VF}(\weights) + c_2 S[\policy](\state_k) \right]"></span>
                     <div class="formula-hint">Bấm để khám phá</div>
                 </div>
+            </div>
+
+            <!-- CARD 4.4: POLICY EVOLUTION - TRPO VS PPO -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Sự tiến hóa lý thuyết: Từ TRPO đến PPO</h3>
+                    <span class="card-badge">Policy Optimization</span>
+                </div>
+                <p>
+                    Một điểm yếu cốt lõi của thuật toán Gradient chính sách truyền thống (như REINFORCE hay Actor-Critic cơ bản) là hiện tượng <strong>Sụp đổ chính sách (Policy Collapse)</strong>. Nếu bước cập nhật tham số <span class="math-expr" data-expr="\weights"></span> quá lớn làm chính sách rơi vào vùng không gian hành động tồi, nó sẽ liên tục thu thập dữ liệu tồi và không bao giờ có thể tự phục hồi lại được.
+                </p>
+                <p>
+                    <strong>TRPO (Trust Region Policy Optimization):</strong> Để giải quyết triệt để, TRPO đưa ra ràng buộc toán học **KL-Divergence** giữa chính sách mới và chính sách cũ nhằm bảo đảm bước cập nhật luôn nằm trong một "Vùng tin cậy" (Trust Region) an toàn:
+                </p>
+                <div class="formula-container" data-expr="\mathbb{E}_{\state} \left[ D_{KL} \left( \policy_{\weights_{\text{old}}}(\cdot \vert \state) \;\parallel\; \policy_{\weights}(\cdot \vert \state) \right) \right] \le \delta">
+                    <span class="math-expr" data-expr="\mathbb{E}_{\state} \left[ D_{KL} \left( \policy_{\weights_{\text{old}}}(\cdot \vert \state) \;\parallel\; \policy_{\weights}(\cdot \vert \state) \right) \right] \le \delta"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+                <p>
+                    Mặc dù có cơ sở toán học cực kỳ chặt chẽ, TRPO gặp trở ngại tính toán vô cùng lớn do phải giải hệ phương trình tuyến tính quy mô lớn chứa ma trận thông tin Fisher (Fisher Information Matrix) và chạy thuật toán Conjugate Gradient phức tạp ở mỗi bước huấn luyện.
+                </p>
+                <p>
+                    <strong>PPO Clipped Objective giải quyết bài toán:</strong> PPO ra đời như một phương pháp xấp xỉ hóa xuất sắc. Thay vì giải bài toán tối ưu ràng buộc toán phức tạp, PPO đưa trực tiếp tỉ số chính sách <span class="math-expr" data-expr="r_k(\weights)"></span> vào hàm mục tiêu và dùng toán tử **Clipped** để chặn đứng động lực thay đổi chính sách vượt quá ngưỡng tin cậy <span class="math-expr" data-expr="[1-\epsilon, 1+\epsilon]"></span>:
+                </p>
+                <ul>
+                    <li><strong>Khi Lợi thế dương (<span class="math-expr" data-expr="\hat{a}_k > 0"></span>):</strong> Hành động này tốt. Ta muốn đẩy tăng xác suất của nó lên (<span class="math-expr" data-expr="r_k > 1"></span>). Tuy nhiên, phép toán clip sẽ khống chế tỉ số <span class="math-expr" data-expr="r_k"></span> không được vượt quá <span class="math-expr" data-expr="1+\epsilon"></span>, ngăn chặn việc cập nhật chính sách quá mức đột ngột.</li>
+                    <li><strong>Khi Lợi thế âm (<span class="math-expr" data-expr="\hat{a}_k < 0"></span>):</strong> Hành động này xấu. Ta muốn hạ thấp xác suất của nó (<span class="math-expr" data-expr="r_k < 1"></span>). Phép toán clip sẽ chặn không cho <span class="math-expr" data-expr="r_k"></span> giảm sâu quá mức <span class="math-expr" data-expr="1-\epsilon"></span>.</li>
+                </ul>
+                <p>
+                    Nhờ cơ chế Clipped Surrogate Objective vô cùng tinh giản này, PPO có thể được tối ưu hóa dễ dàng bằng thuật toán Gradient Descent thông thường (như Adam) trên GPU, mang lại hiệu suất vượt trội và tốc độ hội tụ nhanh hơn TRPO gấp nhiều lần.
+                </p>
             </div>
         </section>
 
@@ -1317,28 +1533,29 @@
                     { sym: "\\weights^-", name: "Đánh giá bằng mạng Target", desc: "Tính toán giá trị Q-value đích thực bằng trọng số mạng target w- trì hoãn." }
                 ]
             },
-            "r_k(\\boldsymbol{\\theta}) = \\frac{\\pi(u_k \\vert x_k, \\boldsymbol{\\theta})}{\\pi(u_k \\vert x_k, \\boldsymbol{\\theta}_{\\text{old}})}": {
+            "r_k(\\weights) = \\frac{\\policy(\action_k \\vert \\state_k, \\weights)}{\\policy(\action_k \\vert \\state_k, \\weights_{\\text{old}})}": {
                 title: "Tỉ lệ xác suất chính sách (PPO Probability Ratio)",
                 text: "Tỉ số đo lường mức độ thay đổi giữa chính sách mới đang huấn luyện và chính sách cũ lưu trữ từ đợt rollout.",
                 symbols: [
-                    { sym: "r_k(\\boldsymbol{\\theta})", name: "Probability Ratio", desc: "Nếu tỉ số bằng 1, hai chính sách hoàn toàn trùng khớp. Nếu lớn hơn 1, chính sách mới thích hành động này hơn." },
-                    { sym: "\\pi(u_k \\vert x_k, \\boldsymbol{\\theta})", name: "Xác suất hành động mới", desc: "Xác suất chọn hành động mới dựa trên tham số trọng số hiện tại." }
+                    { sym: "r_k(\\weights)", name: "Probability Ratio", desc: "Nếu tỉ số bằng 1, hai chính sách trùng khớp. Nếu lớn hơn 1, chính sách mới ưa thích hành động này hơn." },
+                    { sym: "\\policy", name: "Chính sách hành động", desc: "Xác suất phân bố hành động tương ứng với trạng thái đầu vào." },
+                    { sym: "\\weights, \\weights_{\\text{old}}", name: "Tham số trọng số mới & cũ", desc: "Bộ tham số của mạng neural chính sách hiện thời và chính sách cũ." }
                 ]
             },
-            "L^{CLIP}(\\boldsymbol{\\theta}) = \\hat{\\mathbb{E}}_k \\left[ \\min\\left(r_k(\boldsymbol{\\theta})\\hat{a}_k, \\operatorname{clip}(r_k(\\boldsymbol{\\theta}), 1-\\epsilon, 1+\\epsilon)\\hat{a}_k\\right) \\right]": {
+            "L^{CLIP}(\\weights) = \\hat{\\mathbb{E}}_k \\left[ \\min\\left(r_k(\\weights)\\hat{a}_k, \\operatorname{clip}(r_k(\\weights), 1-\\epsilon, 1+\\epsilon)\\hat{a}_k\\right) \\right]": {
                 title: "Hàm mục tiêu PPO Clipped Loss",
                 text: "Hàm mục tiêu cốt lõi của PPO. Clip giá trị tỉ số r_k(w) trong khoảng [1-e, 1+e] để ngăn chính sách mới lệch quá xa chính sách cũ, tạo độ tin cậy tuyệt đối.",
                 symbols: [
-                    { sym: "\\operatorname{clip}(r_k, 1-\\epsilon, 1+\\epsilon)", name: "Hàm clip giới hạn", desc: "Triệt tiêu động lực tăng/giảm xác suất hành động quá mức cho phép." },
+                    { sym: "\\operatorname{clip}(r_k, 1-\\epsilon, 1+\\epsilon)", name: "Hàm clip giới hạn", desc: "Khống chế tỉ lệ thay đổi chính sách trong vùng an toàn tránh sụp đổ chính sách." },
                     { sym: "\\hat{a}_k", name: "Ước lượng lợi thế Advantage", desc: "Độ ưu việt thu được từ GAE, đại diện cho việc hành động tốt hay xấu." }
                 ]
             },
-            "\\delta_k = r_k + \\gamma v(x_{k+1}) - v(x_k)": {
+            "\\delta_k = \\reward_{k+1} + \\gamma V(\stateNext) - V(\state_k)": {
                 title: "Sai số Temporal Difference (TD-error)",
                 text: "Sai số dự đoán giá trị 1-bước. Là viên gạch nền móng để xây dựng bộ ước lượng lợi thế GAE.",
                 symbols: [
                     { sym: "\\delta_k", name: "TD Error", desc: "Chênh lệch giữa phần thưởng thực tế nhận được cộng giá trị tương lai chiết khấu so với dự đoán ban đầu." },
-                    { sym: "v(x_k)", name: "Giá trị trạng thái dự đoán", desc: "Ước lượng giá trị của trạng thái hiện thời bằng mạng Critic." }
+                    { sym: "V(\\state_k)", name: "Giá trị trạng thái dự đoán", desc: "Ước lượng giá trị của trạng thái hiện thời bằng mạng Critic." }
                 ]
             },
             "\\hat{a}_k^{(\\gamma, \\lambda)} = \\sum_{i=0}^{\\infty} (\\gamma\\lambda)^i \\delta_{k+i}": {
@@ -1348,12 +1565,81 @@
                     { sym: "\\lambda", name: "Tham số GAE Lambda", desc: "Hệ số chiết khấu bổ sung. L=0 biến GAE thành 1-step TD (bias cao, variance thấp). L=1 biến GAE thành Monte Carlo (bias thấp, variance cao)." }
                 ]
             },
-            "L^{PPO}(\\boldsymbol{\\theta}) = \\hat{\\mathbb{E}}_k \\left[ L^{CLIP}(\\boldsymbol{\\theta}) - c_1 L^{VF}(\\boldsymbol{\\theta}) + c_2 S[\\pi](\\state_k) \\right]": {
+            "L^{PPO}(\\weights) = \\hat{\\mathbb{E}}_k \\left[ L^{CLIP}(\\weights) - c_1 L^{VF}(\\weights) + c_2 S[\\policy](\\state_k) \\right]": {
                 title: "Hàm mục tiêu PPO toàn phần",
                 text: "Kết hợp giữa tối ưu hóa chính sách chính xác, giảm thiểu sai số dự đoán giá trị của Critic (VF loss) và cộng thêm Entropy bonus khuyến khích Agent tích cực khám phá môi trường.",
                 symbols: [
                     { sym: "L^{VF}", name: "Value Function Loss", desc: "Lỗi bình phương trung bình của mạng Critic cần được tối thiểu hóa." },
-                    { sym: "S[\\pi]", name: "Entropy chính sách", desc: "Độ đo sự hỗn loạn của chính sách. Entropy cao biểu thị Agent phân bổ đều xác suất hành động, tăng tính khám phá." }
+                    { sym: "S[\\policy]", name: "Entropy chính sách", desc: "Độ đo sự hỗn loạn của chính sách. Entropy cao biểu thị Agent phân bổ đều xác suất hành động, tăng tính khám phá." }
+                ]
+            },
+            "V(\\state_k) \\leftarrow V(\\state_k) + \\alpha \\left[ G_k - V(\\state_k) \\right]": {
+                title: "Luật cập nhật Monte Carlo (MC)",
+                text: "Cập nhật giá trị trạng thái hướng dần về phía phần thưởng tích lũy thực tế nhận được từ trạng thái đó cho đến cuối tập chơi.",
+                symbols: [
+                    { sym: "G_k", name: "Phần thưởng tích lũy thực tế", desc: "Tổng phần thưởng chiết khấu thu được từ thời điểm k đến hết tập chơi. Yêu cầu tập chơi phải kết thúc." },
+                    { sym: "\\alpha", name: "Tốc độ học (Learning rate)", desc: "Hệ số điều chỉnh mức độ cập nhật giá trị." }
+                ]
+            },
+            "V(\\state_k) \\leftarrow V(\\state_k) + \\alpha \\left[ \\reward_{k+1} + \\gamma V(\stateNext) - V(\\state_k) \right]": {
+                title: "Luật cập nhật Temporal Difference (TD)",
+                text: "Luật cập nhật TD(0) 1-bước. Sử dụng cơ chế Bootstrapping để cập nhật giá trị trạng thái hiện tại dựa trên ước lượng trạng thái tiếp theo ngay lập tức.",
+                symbols: [
+                    { sym: "\\reward_{k+1}", name: "Phần thưởng tức thời", desc: "Phần thưởng nhận về ngay ở bước dịch chuyển kế tiếp." },
+                    { sym: "\\gamma V(\\stateNext)", name: "Giá trị trạng thái tương lai chiết khấu", desc: "Ước lượng giá trị tương lai được thu hồi sớm một bước nhờ bootstrapping." }
+                ]
+            },
+            "\\qval(\\state_k, \\action_k) \\leftarrow \\qval(\\state_k, \\action_k) + \\alpha \\left[ \\reward + \\gamma \\qval(\\stateNext, \\actionNext) - \\qval(\\state_k, \\action_k) \\right]": {
+                title: "Luật cập nhật SARSA (On-policy TD)",
+                text: "Thuật toán cập nhật Q-value On-policy. Hành động tiếp theo u_{k+1} được chọn từ chính sách hiện hành để đánh giá, phản ánh hành vi thực tế của Agent.",
+                symbols: [
+                    { sym: "\\actionNext", name: "Hành động tiếp theo", desc: "Hành động thực sự được chọn theo chính sách hiện hành, bao gồm cả các pha khám phá ngẫu nhiên." }
+                ]
+            },
+            "\\qval(\\state_k, \\action_k) \\leftarrow \\qval(\\state_k, \\action_k) + \\alpha \\left[ \\reward + \\gamma \\max_{u} \\qval(\\stateNext, u) - \\qval(\\state_k, \\action_k) \\right]": {
+                title: "Luật cập nhật Q-Learning (Off-policy TD)",
+                text: "Thuật toán cập nhật Q-value Off-policy. Sử dụng hành động tốt nhất có thể có (max) ở trạng thái kế tiếp để cập nhật, độc lập hoàn toàn với hành động thực tế của Agent.",
+                symbols: [
+                    { sym: "\\max_{u} \\qval", name: "Cực đại hóa giá trị tương lai", desc: "Luôn giả định Agent hành xử tối ưu nhất trong tương lai bất kể chiến lược khám phá hiện tại là gì." }
+                ]
+            },
+            "\\nabla_{\\weights} J(\\weights) = \\mathbb{E}_{\\state \\sim d^{\\policy}, \\action \\sim \\policy} \\left[ \\nabla_{\\weights} \\log \\policy(\\action \\vert \\state, \\weights) \\qval^{\\policy}(\\state, \\action) \\right]": {
+                title: "Định lý Gradient chính sách (Policy Gradient Theorem)",
+                text: "Định lý nền móng chứng minh rằng gradient của hiệu năng chính sách có thể tính toán được dựa trên kỳ vọng của tích giữa gradient log chính sách và hàm giá trị hành động Q.",
+                symbols: [
+                    { sym: "\\nabla_{\\weights} J(\\weights)", name: "Gradient hiệu năng chính sách", desc: "Hướng thay đổi tham số để tăng cực đại phần thưởng kỳ vọng." },
+                    { sym: "\\nabla_{\\weights} \\log \\policy", name: "Gradient log chính sách", desc: "Hướng dẫn cách thay đổi tham số để tăng xác suất chọn hành động tương ứng." }
+                ]
+            },
+            "\\weights \\leftarrow \\weights + \\alpha G_k \\nabla_{\\weights} \\log \\policy(\\action_k \\vert \\state_k, \\weights)": {
+                title: "Luật cập nhật REINFORCE",
+                text: "Cập nhật tham số chính sách trực tiếp bằng phương pháp Monte Carlo Policy Gradient, đẩy mạnh các hành động mang lại phần thưởng thực tế G_k cao.",
+                symbols: [
+                    { sym: "G_k", name: "Phần thưởng Monte Carlo", desc: "Phần thưởng thực tế tích lũy làm mốc quy chiếu đánh giá hành động tốt hay xấu." }
+                ]
+            },
+            "\\nabla_{\\weights} J(\\weights) = \\mathbb{E} \\left[ \\nabla_{\\weights} \\log \\policy(\\action \\vert \\state, \\weights) \\left( \\qval^{\\policy}(\\state, \\action) - V(\\state) \\right) \\right] = \\mathbb{E} \\left[ \\nabla_{\\weights} \\log \\policy(\\action \\vert \\state, \\weights) A(\\state, \\action) \\right]": {
+                title: "Policy Gradient với Baseline Subtraction",
+                text: "Trừ đi hàm trị số trạng thái V(s) làm Baseline để giảm phương sai (Variance) cực lớn của ước lượng Monte Carlo mà không làm lệch kỳ vọng, dẫn tới hàm Lợi thế A(s, a).",
+                symbols: [
+                    { sym: "A(\\state, \\action)", name: "Hàm Lợi thế (Advantage)", desc: "Ước lượng sự vượt trội của hành động u so với trung bình ở trạng thái x." },
+                    { sym: "V(\\state)", name: "Hàm trị số trạng thái làm Baseline", desc: "Ước lượng giá trị trung bình trạng thái để loại bỏ biến động nền." }
+                ]
+            },
+            "G_{k:k+n} = \\reward_{k+1} + \\gamma \\reward_{k+2} + \\dots + \\gamma^{n-1} \\reward_{k+n} + \\gamma^n V(\\state_{k+n})": {
+                title: "Ước lượng phần thưởng n-bước (n-step Return)",
+                text: "Cầu nối dung hòa Bias-Variance. Kết hợp n bước phần thưởng thực tế và bootstrap từ bước n+1.",
+                symbols: [
+                    { sym: "G_{k:k+n}", name: "Phần thưởng n-bước", desc: "Mục tiêu cập nhật kết hợp giữa MC và TD." },
+                    { sym: "\\gamma^n V(\\state_{k+n})", name: "Ước lượng trạng thái thứ n", desc: "Giá trị bootstrap thu về từ bước n để chấm dứt chuỗi tính toán sớm." }
+                ]
+            },
+            "\\mathbb{E}_{\\state} \\left[ D_{KL} \\left( \\policy_{\\weights_{\\text{old}}}(\\cdot \\vert \\state) \\;\\parallel\\; \\policy_{\\weights}(\\cdot \\vert \\state) \\right) \\right] \\le \\delta": {
+                title: "Ràng buộc KL-Divergence trong TRPO",
+                text: "Ràng buộc khoảng cách thông tin Kullback-Leibler giữa chính sách cũ và mới để giữ bước cập nhật luôn nằm trong vùng tin cậy an toàn, tránh sụp đổ chính sách.",
+                symbols: [
+                    { sym: "D_{KL}", name: "KL Divergence", desc: "Độ đo sự khác biệt giữa hai phân phối xác suất chính sách mới và cũ." },
+                    { sym: "\\delta", name: "Ngưỡng vùng tin cậy", desc: "Giới hạn trên cho sự thay đổi chính sách." }
                 ]
             }
         };
@@ -1762,6 +2048,50 @@
                 ],
                 correct: 1,
                 explanation: "Một khung ảnh tĩnh đơn lẻ chỉ cung cấp vị trí của bóng, không thể cho biết bóng đang bay sang trái hay sang phải, vận tốc nhanh hay chậm (mất tính chất Markov - trạng thái hiện tại chứa đủ thông tin lịch sử). Chồng 4 khung ảnh liên tiếp bổ sung thông tin lịch sử động học ngay trong quan sát hiện thời, khôi phục tính chất Markov hoàn hảo cho hệ thống."
+            },
+            {
+                q: "Điểm khác biệt cốt lõi về mặt toán học giữa Monte Carlo (MC) và Temporal Difference (TD) Learning trong Model-Free Prediction là gì?",
+                options: [
+                    "A. Monte Carlo sử dụng bootstrapping để ước lượng, còn TD cập nhật từ các tập chơi hoàn chỉnh.",
+                    "B. Monte Carlo cập nhật online từng bước đi độc lập, còn TD phải đợi cả tập chơi kết thúc.",
+                    "C. Monte Carlo cập nhật hướng tới phần thưởng thực tế đầy đủ (không bootstrapping, không chệch nhưng variance cao), còn TD cập nhật dựa trên ước lượng bootstrapping sớm (chệch nhưng variance thấp).",
+                    "D. Monte Carlo có phương sai cực thấp ổn định mạng neural, còn TD có phương sai vô hạn gây phân kỳ."
+                ],
+                correct: 2,
+                explanation: "Monte Carlo cập nhật giá trị hướng dần về phía phần thưởng tích lũy thực tế $G_k$ nhận được cho đến cuối tập chơi nên không chệch (unbiased) nhưng phương sai cực kỳ lớn. Temporal Difference (TD) cập nhật dựa trên phần thưởng tức thời và ước lượng trạng thái kế tiếp qua cơ chế **Bootstrapping** nên có chệch (biased) nhưng phương sai rất thấp, cho phép cập nhật online từng bước."
+            },
+            {
+                q: "Tại sao thuật toán Deep Q-Network (DQN) bắt buộc phải sử dụng luật cập nhật Off-policy (kế thừa từ Q-learning) thay vì On-policy (như SARSA)?",
+                options: [
+                    "A. Vì thuật toán On-policy không thể tối ưu hóa lan truyền ngược trên GPU.",
+                    "B. Vì DQN bắt buộc phải sử dụng bộ đệm Experience Replay lưu trữ các transition cũ được tạo ra từ chính sách hành vi cũ (Off-policy), điều này vi phạm giả định phân phối dữ liệu hiện tại của các thuật toán On-policy.",
+                    "C. Vì luật cập nhật Off-policy luôn hội tụ nhanh hơn gấp 10 lần On-policy trong mọi môi trường trò chơi.",
+                    "D. Vì SARSA không hỗ trợ không gian hành động rời rạc như Atari Pong."
+                ],
+                correct: 1,
+                explanation: "Experience Replay lưu trữ các trải nghiệm lịch sử của Agent. Tại thời điểm lấy mẫu huấn luyện, chính sách hiện tại của Agent đã khác so với chính sách cũ sinh ra các mẫu đó, biến chúng thành dữ liệu Off-policy. Q-learning (Off-policy) cho phép học chính sách tối ưu từ bất kỳ nguồn phân phối dữ liệu nào. Ngược lại, SARSA (On-policy) bắt buộc dữ liệu huấn luyện phải được tạo ra trực tiếp bởi chính sách hiện hành, do đó không thể hoạt động cùng bộ đệm Experience Replay."
+            },
+            {
+                q: "Trong định lý Policy Gradient và thuật toán REINFORCE, phép toán trừ đi một hàm Baseline $V(\\state)$ từ hàm giá trị $Q(\\state, \\action)$ mang lại lợi ích toán học đột phá gì?",
+                options: [
+                    "A. Thay đổi hoàn toàn kỳ vọng toán học của Gradient nhằm thúc đẩy Agent khám phá mạnh hơn.",
+                    "B. Chuyển đổi thuật toán từ Policy-based thuần túy thành Value-based thuần túy để tính toán Q-table.",
+                    "C. Không làm biến đổi kỳ vọng của Gradient (bảo toàn tính không chệch) nhưng giúp triệt tiêu phương sai cực kỳ lớn của ước lượng Monte Carlo, dẫn đến hàm Lợi thế $A(\\state, \\action)$.",
+                    "D. Loại bỏ hoàn toàn lỗi trị số Critic trong cấu trúc Actor-Critic."
+                ],
+                correct: 2,
+                explanation: "Chứng minh toán học chỉ ra rằng $\\mathbb{E} [\\nabla_\\theta \\log \\pi(a|s) V(s)] = 0$. Vì thế, trừ đi Baseline $V(s)$ hoàn toàn **không làm thay đổi kỳ vọng toán học của gradient** (vẫn đảm bảo tính không chệch), nhưng nó giúp trừ bớt giá trị trung bình nền của các trạng thái, thu hẹp mạnh sự dao động của phần thưởng thực tế và do đó giảm thiểu đáng kể phương sai (variance) của các mẫu gradient."
+            },
+            {
+                q: "Tại sao thuật toán PPO lại được ưu chuộng rộng rãi hơn TRPO trong thực tế huấn luyện các Agent Deep RL chơi game, dù TRPO có cơ sở toán học tối ưu vùng tin cậy chặt chẽ hơn?",
+                options: [
+                    "A. TRPO không hỗ trợ huấn luyện với mạng tích chập deep CNN.",
+                    "B. TRPO sử dụng ràng buộc KL-Divergence rất nặng nề về tính toán (phải giải ma trận Fisher và chạy Conjugate Gradient), trong khi PPO xấp xỉ hóa hiệu quả bằng Clipped Surrogate Objective cực kỳ đơn giản, chạy trực tiếp bằng Gradient Descent trên GPU.",
+                    "C. PPO không cần mạng Critic để học cách ước lượng hàm trị số trạng thái.",
+                    "D. TRPO luôn luôn bị phân kỳ khi huấn luyện trong các môi trường có phần thưởng thưa thớt."
+                ],
+                correct: 1,
+                explanation: "TRPO giải bài toán tối ưu ràng buộc KL-Divergence rất phức tạp và tốn kém tài nguyên tính toán do phải tính ma trận thông tin Fisher bậc hai. PPO giải quyết bài toán 'vùng tin cậy' bằng cách xấp xỉ hóa bậc nhất thông qua Clipped Surrogate Loss ($L^{CLIP}$), cho phép sử dụng trình tối ưu hóa Adam tiêu chuẩn để huấn luyện mượt mà và chạy cực nhanh trên GPU."
             }
         ];
 
