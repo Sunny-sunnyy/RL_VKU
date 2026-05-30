@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong RL Comparison - Cẩm nang Học tập & Phân tích Mã nguồn</title>
+    
+    <!-- Google Fonts: Inter cho nội dung và Fira Code cho Code -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Prism.js để tự động tô màu cú pháp Python chuyên nghiệp -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    
+    <style>
+        /* ==========================================================================
+           HỆ THỐNG BIẾN CSS & CẤU HÌNH GIAO DIỆN PREMIUM LIGHT THEME (Cỡ chữ to hơn)
+           ========================================================================== */
+        :root {
+            --bg-primary: #f5f5f7;       /* Nền xám ấm siêu mịn phong cách Apple */
+            --bg-secondary: #ffffff;     /* Nền trắng tinh khiết cho thẻ và Sidebar */
+            --primary: #0066cc;          /* Xanh lam công nghệ hoàng gia làm màu nhấn chính */
+            --primary-hover: #0077ed;    /* Xanh lam khi hover */
+            --secondary: #e056fd;        /* Màu thạch anh làm điểm nhấn phụ */
+            --secondary-bg: #f5f6fa;     /* Nền phụ tối hơn một chút */
+            --text-main: #1d1d1f;        /* Xám đen sẫm độ tương phản cao cho chữ chính */
+            --text-muted: #86868b;       /* Xám nhạt cho mô tả phụ */
+            --border-color: #e5e5e7;     /* Viền xám mảnh */
+            
+            /* Cỡ chữ to hơn theo yêu cầu của bạn */
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-code: 'Fira Code', 'Courier New', monospace;
+            --font-size-base: 17.5px;
+            --font-size-code: 14.5px;
+            
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.04);
+            --shadow-glow: 0 10px 30px rgba(0, 102, 204, 0.08);
+        }
+
+        /* Tái thiết lập mặc định */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            font-size: var(--font-size-base);
+            line-height: 1.625;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Bố cục SPA dạng Dashboard hai cột */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ==========================================================================
+           1. THANH ĐIỀU HƯỚNG BÊN (STICKY SIDEBAR) VỚI GLASSMORPHISM
+           ========================================================================== */
+        .sidebar {
+            width: 320px;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding: 30px 24px;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.01);
+        }
+
+        .sidebar-header {
+            margin-bottom: 25px;
+        }
+
+        .project-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        .tech-tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background-color: var(--secondary-bg);
+            color: var(--primary);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Bộ tìm kiếm động */
+        .search-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 38px;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            outline: none;
+            transition: var(--transition-smooth);
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            background-color: var(--bg-secondary);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        /* Menu điều hướng có Scroll-Spy */
+        .nav-menu {
+            list-style: none;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            transition: var(--transition-smooth);
+        }
+
+        .nav-link:hover {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+        }
+
+        .nav-item.active .nav-link {
+            background-color: rgba(0, 102, 204, 0.08);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .theory-btn-container {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .theory-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--primary), #0052a3);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition-smooth);
+        }
+
+        .theory-btn:hover {
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-1px);
+        }
+
+        /* ==========================================================================
+           2. VÙNG NỘI DUNG CUỘN CHÍNH (CONTENT PANE)
+           ========================================================================== */
+        .content-pane {
+            margin-left: 320px;
+            flex-grow: 1;
+            padding: 60px 80px;
+            max-width: 1200px;
+        }
+
+        /* Phần Header Nội dung */
+        .content-header {
+            margin-bottom: 50px;
+        }
+
+        .page-badge {
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+            background-color: rgba(0, 102, 204, 0.08);
+            padding: 6px 12px;
+            border-radius: 30px;
+            margin-bottom: 15px;
+        }
+
+        h1.main-title {
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.15;
+            margin-bottom: 15px;
+        }
+
+        .subtitle {
+            font-size: 19px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* Khung nội dung chính (Sections) */
+        section {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-soft);
+            scroll-margin-top: 40px;
+            transition: var(--transition-smooth);
+        }
+
+        section:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        }
+
+        h2.section-title {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 25px;
+            position: relative;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--bg-primary);
+        }
+
+        h2.section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 80px;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        /* ==========================================================================
+           3. BỘ SƠ ĐỒ TRỰC QUAN HÓA CAO CẤP (CUSTOM PREMIUM WORKFLOW UI)
+           ========================================================================== */
+        .diagram-container {
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 30px;
+            margin: 25px 0;
+            overflow-x: auto;
+        }
+
+        /* SVG Sơ đồ luồng tiền xử lý (Atari Preprocessing) */
+        .svg-workflow {
+            width: 100%;
+            min-width: 800px;
+            height: auto;
+        }
+
+        .flow-node {
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .flow-node rect {
+            fill: #ffffff;
+            stroke: var(--border-color);
+            stroke-width: 1.5px;
+            rx: 8px;
+            ry: 8px;
+            transition: var(--transition-smooth);
+        }
+
+        .flow-node:hover rect {
+            stroke: var(--primary);
+            filter: drop-shadow(0 4px 10px rgba(0, 102, 204, 0.15));
+            transform: translateY(-2px);
+        }
+
+        .flow-node.active rect {
+            stroke: var(--primary);
+            stroke-width: 2px;
+            fill: rgba(0, 102, 204, 0.03);
+        }
+
+        .flow-node text {
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 600;
+            fill: var(--text-main);
+        }
+
+        .flow-node text.sub {
+            font-size: 11px;
+            font-weight: 400;
+            fill: var(--text-muted);
+        }
+
+        /* Hiệu ứng đường kết nối chạy động */
+        .flow-line {
+            stroke: var(--border-color);
+            stroke-width: 2px;
+            fill: none;
+            stroke-dasharray: 6 4;
+            animation: dash 30s linear infinite;
+        }
+
+        .flow-line.active {
+            stroke: var(--primary);
+            animation: dash 15s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -1000;
+            }
+        }
+
+        /* Panel Tooltip giải thích trực quan */
+        .diagram-info-panel {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-top: 15px;
+            min-height: 80px;
+            transition: var(--transition-smooth);
+        }
+
+        .diagram-info-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .diagram-info-desc {
+            font-size: 15px;
+            color: var(--text-main);
+        }
+
+        /* ==========================================================================
+           4. PHÂN LỚP KIẾN TRÚC MÃ NGUỒN (ARCHITECTURE LAYERS ACCORDION)
+           ========================================================================== */
+        .layer-item {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: var(--transition-smooth);
+        }
+
+        .layer-header {
+            background-color: var(--secondary-bg);
+            padding: 16px 20px;
+            font-weight: 700;
+            font-size: 17px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            transition: var(--transition-smooth);
+        }
+
+        .layer-header:hover {
+            background-color: var(--border-color);
+        }
+
+        .layer-badge {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background-color: rgba(0, 102, 204, 0.08);
+            color: var(--primary);
+            border: 1px solid rgba(0, 102, 204, 0.15);
+        }
+
+        .layer-content {
+            padding: 24px;
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            display: none;
+        }
+
+        .layer-item.open .layer-content {
+            display: block;
+        }
+
+        .layer-file-list {
+            margin-top: 15px;
+            list-style: none;
+        }
+
+        .layer-file-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--bg-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .layer-file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-name {
+            font-family: var(--font-code);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .file-desc {
+            font-size: 14.5px;
+            color: var(--text-muted);
+            width: 65%;
+        }
+
+        /* ==========================================================================
+           5. BỘ PHÂN TÍCH CODE THÔNG MINH (CODE INSPECTOR) CÓ TAB ĐỘNG
+           ========================================================================== */
+        .tab-container {
+            margin-top: 20px;
+        }
+
+        .tab-headers {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+
+        .tab-btn {
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition-smooth);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        .tab-content-item {
+            display: none;
+        }
+
+        .tab-content-item.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .code-block-wrapper {
+            position: relative;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-color);
+        }
+
+        .code-header {
+            background-color: #2d3436;
+            color: #dfe6e9;
+            padding: 12px 20px;
+            font-family: var(--font-code);
+            font-size: 13.5px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-lang-badge {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background-color: #636e72;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* Hộp code tuân thủ Fira Code 14.5px */
+        pre[class*="language-"] {
+            margin: 0 !important;
+            border-radius: 0 !important;
+            font-size: var(--font-size-code) !important;
+            font-family: var(--font-code) !important;
+            padding: 20px !important;
+        }
+
+        /* Ghi chú Code Tương tác (Interactive Annotations) */
+        .annotation-guide {
+            background-color: rgba(224, 86, 253, 0.06);
+            border: 1px solid rgba(224, 86, 253, 0.15);
+            border-radius: var(--radius-md);
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .code-annotation-marker {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            background-color: var(--secondary) !important;
+            color: #ffffff !important;
+            font-size: 12px;
+            font-weight: 700 !important;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 22px;
+            cursor: pointer;
+            margin: 0 6px;
+            box-shadow: 0 0 6px rgba(224, 86, 253, 0.4);
+            transition: var(--transition-smooth);
+        }
+
+        .code-annotation-marker:hover {
+            transform: scale(1.2);
+            background-color: #d81b60 !important;
+        }
+
+        /* ==========================================================================
+           6. CÁC HỘP THÔNG BÁO / ĐẶC BIỆT (ALERTS)
+           ========================================================================== */
+        .alert-box {
+            border-radius: var(--radius-md);
+            padding: 20px 24px;
+            margin: 20px 0;
+            display: flex;
+            gap: 16px;
+        }
+
+        .alert-box.info {
+            background-color: rgba(0, 102, 204, 0.05);
+            border: 1px solid rgba(0, 102, 204, 0.15);
+            border-left: 4px solid var(--primary);
+        }
+
+        .alert-box.warning {
+            background-color: rgba(224, 86, 253, 0.05);
+            border: 1px solid rgba(224, 86, 253, 0.15);
+            border-left: 4px solid var(--secondary);
+        }
+
+        .alert-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .alert-title.info-t { color: var(--primary); }
+        .alert-title.warning-t { color: var(--secondary); }
+
+        .alert-desc {
+            font-size: 15px;
+            color: var(--text-main);
+        }
+
+        /* ==========================================================================
+           7. CÂU HỎI ÔN TẬP CỦNG CỐ TƯƠNG TÁC
+           ========================================================================== */
+        .quiz-item {
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 18px;
+        }
+
+        .quiz-question {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .quiz-option {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 12px 18px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 15.5px;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+
+        .quiz-option:hover {
+            border-color: var(--primary);
+            background-color: rgba(0, 102, 204, 0.02);
+        }
+
+        .quiz-option.selected {
+            background-color: rgba(0, 102, 204, 0.06);
+            border-color: var(--primary);
+        }
+
+        .quiz-action-btn {
+            background-color: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 14.5px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .quiz-action-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .quiz-feedback {
+            margin-top: 15px;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            display: none;
+        }
+
+        .quiz-feedback.correct {
+            background-color: rgba(46, 204, 113, 0.08);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+        }
+
+        .quiz-feedback.incorrect {
+            background-color: rgba(231, 76, 60, 0.08);
+            border: 1px solid rgba(231, 76, 60, 0.2);
+            color: #c0392b;
+        }
+
+        /* Hộp lệnh CLI mẫu */
+        .cli-code {
+            background-color: #2d3436;
+            color: #00ffcc;
+            font-family: var(--font-code);
+            font-size: 14.5px;
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            margin: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .copy-btn:hover {
+            color: #00ffcc;
+        }
+
+        /* Căn chỉnh bảng so sánh */
+        table.comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table.comparison-table th, table.comparison-table td {
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 15.5px;
+        }
+
+        table.comparison-table th {
+            background-color: var(--secondary-bg);
+            font-weight: 700;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- ==========================================================================
+       ASIDE: THANH ĐIỀU HƯỚNG BÊN VÀ BỘ TÌM KIẾM ĐỘNG
+       ========================================================================== -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="project-title">Pong RL Comparison</div>
+            <div class="tech-tags">
+                <span class="tech-tag">PyTorch</span>
+                <span class="tech-tag">Gymnasium</span>
+                <span class="tech-tag">Stable-Baselines3</span>
+                <span class="tech-tag">Atari Pong</span>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <!-- Icon SVG Search đơn giản -->
+            <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" class="search-input" id="sidebarSearch" placeholder="Tìm kiếm bài học, file...">
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item active" data-section="overview">
+                <a href="#overview" class="nav-link">1. Tổng quan Dự án</a>
+            </li>
+            <li class="nav-item" data-section="workflows">
+                <a href="#workflows" class="nav-link">2. Luồng Hoạt động</a>
+            </li>
+            <li class="nav-item" data-section="layers">
+                <a href="#layers" class="nav-link">3. Phân lớp Kiến trúc</a>
+            </li>
+            <li class="nav-item" data-section="code-inspector">
+                <a href="#code-inspector" class="nav-link">4. Bộ Phân tích Code</a>
+            </li>
+            <li class="nav-item" data-section="edge-cases">
+                <a href="#edge-cases" class="nav-link">5. Xử lý Lỗi & Tối ưu</a>
+            </li>
+            <li class="nav-item" data-section="benchmark">
+                <a href="#benchmark" class="nav-link">6. Chạy Thực nghiệm</a>
+            </li>
+            <li class="nav-item" data-section="quiz">
+                <a href="#quiz" class="nav-link">7. Câu hỏi Củng cố</a>
+            </li>
+        </ul>
+
+        <div class="theory-btn-container">
+            <a href="theory_review.html" class="theory-btn">Lý thuyết Thuật toán &rarr;</a>
+        </div>
+    </aside>
+
+    <!-- ==========================================================================
+       MAIN: VÙNG NỘI DUNG CHÍNH (CONTENT PANE)
+       ========================================================================== -->
+    <main class="content-pane">
+        <header class="content-header">
+            <span class="page-badge">Interactive Learning Guide</span>
+            <h1 class="main-title">Trực quan hóa Luồng hoạt động & Phân tích Mã nguồn</h1>
+            <p class="subtitle">Tài liệu học tập chuyên sâu giải thích chi tiết cấu trúc code từ Gymnasium wrappers đến các thuật toán tự viết PyTorch.</p>
+        </header>
+
+        <!-- SECTION 1: TỔNG QUAN DỰ ÁN -->
+        <section id="overview" class="searchable-section">
+            <h2 class="section-title">1. Tổng quan Dự án</h2>
+            <p>Chào mừng bạn đến với cẩm nang học tập thực hành của dự án <strong>Pong Reinforcement Learning Comparison</strong>. Đây là một hệ thống so sánh (benchmark suite) toàn diện được thiết kế để đo lường hiệu năng huấn luyện giữa các thuật toán Reinforcement Learning.</p>
+            <p style="margin-top: 15px;">Dự án so sánh trực tiếp hai trường phái tiếp cận cốt lõi trong học tăng cường:</p>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Trường phái tiếp cận</th>
+                        <th>Thuật toán triển khai</th>
+                        <th>Đặc điểm nổi bật</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Value-based (Dựa trên giá trị)</strong></td>
+                        <td>DQN & Dueling Double DQN (D3QN) tự viết</td>
+                        <td>Học Off-policy, tối ưu hóa hàm giá trị Q qua Bellman update, sử dụng Replay Buffer để tái sử dụng dữ liệu.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Policy-based (Dựa trên chính sách)</strong></td>
+                        <td>PPO (Tự viết & Baseline Stable-Baselines3)</td>
+                        <td>Học On-policy ổn định, sử dụng clipped objective để ngăn chính sách thay đổi quá đột ngột, tính toán GAE.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- SECTION 2: LUỒNG HOẠT ĐỘNG (CUSTOM PREMIUM WORKFLOW UI) -->
+        <section id="workflows" class="searchable-section">
+            <h2 class="section-title">2. Luồng Hoạt động Trực quan</h2>
+            <p>Dưới đây là sơ đồ luồng dữ liệu tương tác độc quyền được thiết kế để trực quan hóa quá trình xử lý từ khung hình Atari thô đến bước học mạng neural của Agent. Hãy click chuột vào bất kỳ bước nào trong sơ đồ để xem giải thích nghiệp vụ chi tiết.</p>
+
+            <div class="diagram-container">
+                <svg class="svg-workflow" viewBox="0 0 950 160">
+                    <!-- Các định nghĩa mũi tên -->
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="7" refX="6" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#0066cc"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Đường kết nối chạy động -->
+                    <path class="flow-line active" d="M 140,80 L 195,80" />
+                    <path class="flow-line active" d="M 320,80 L 375,80" />
+                    <path class="flow-line active" d="M 500,80 L 555,80" />
+                    <path class="flow-line active" d="M 680,80 L 735,80" />
+
+                    <!-- Node 1: Raw Frame -->
+                    <g class="flow-node active" id="node-raw" onclick="showWorkflowDetail('raw')">
+                        <rect x="10" y="35" width="130" height="90" />
+                        <text x="75" y="70" text-anchor="middle">1. Atari Frame</text>
+                        <text x="75" y="90" text-anchor="middle" class="sub">210x160x3 RGB</text>
+                        <text x="75" y="105" text-anchor="middle" class="sub">(Khung hình thô)</text>
+                    </g>
+
+                    <!-- Node 2: Atari Preprocessing -->
+                    <g class="flow-node" id="node-prep" onclick="showWorkflowDetail('prep')">
+                        <rect x="195" y="35" width="125" height="90" />
+                        <text x="257" y="65" text-anchor="middle">2. Preprocessing</text>
+                        <text x="257" y="85" text-anchor="middle" class="sub">No-op, Frame Skip</text>
+                        <text x="257" y="105" text-anchor="middle" class="sub">Grayscale, Max Pool</text>
+                    </g>
+
+                    <!-- Node 3: Resize & Scale -->
+                    <g class="flow-node" id="node-resize" onclick="showWorkflowDetail('resize')">
+                        <rect x="375" y="35" width="125" height="90" />
+                        <text x="437" y="65" text-anchor="middle">3. Resize & Scale</text>
+                        <text x="437" y="85" text-anchor="middle" class="sub">Resize to 84x84</text>
+                        <text x="437" y="105" text-anchor="middle" class="sub">Scale to [0.0, 1.0]</text>
+                    </g>
+
+                    <!-- Node 4: FrameStack -->
+                    <g class="flow-node" id="node-stack" onclick="showWorkflowDetail('stack')">
+                        <rect x="555" y="35" width="125" height="90" />
+                        <text x="617" y="65" text-anchor="middle">4. Frame Stack</text>
+                        <text x="617" y="85" text-anchor="middle" class="sub">Stack last 4 frames</text>
+                        <text x="617" y="105" text-anchor="middle" class="sub">Shape: 4x84x84</text>
+                    </g>
+
+                    <!-- Node 5: Output Tensor -->
+                    <g class="flow-node" id="node-tensor" onclick="showWorkflowDetail('tensor')">
+                        <rect x="735" y="35" width="145" height="90" style="stroke: var(--secondary);" />
+                        <text x="807" y="65" text-anchor="middle" style="fill: var(--primary); font-weight: 700;">5. CNN Input</text>
+                        <text x="807" y="85" text-anchor="middle" class="sub">Tensor float32</text>
+                        <text x="807" y="105" text-anchor="middle" class="sub">(Ready for PyTorch)</text>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Panel hiển thị chi tiết khi nhấp chuột -->
+            <div class="diagram-info-panel" id="workflowInfoPanel">
+                <div class="diagram-info-title" id="workflowInfoTitle">1. Atari Frame (Khung hình gốc)</div>
+                <div class="diagram-info-desc" id="workflowInfoDesc">Khung hình gốc trích xuất trực tiếp từ máy giả lập Atari (ALE) có độ phân giải màu 210x160x3 RGB. Khung hình đơn lẻ này không chứa thông tin động về hướng chuyển động và tốc độ của quả bóng, do đó cần phải được tiền xử lý.</div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: PHÂN LỚP KIẾN TRÚC MÃ NGUỒN -->
+        <section id="layers" class="searchable-section">
+            <h2 class="section-title">3. Phân lớp Kiến trúc Mã nguồn</h2>
+            <p>Dự án được cấu trúc theo 4 phân lớp độc lập giúp việc phát triển, kiểm thử và nghiên cứu học tập trở nên mạch lạc:</p>
+
+            <div class="layers-accordion">
+                <!-- Layer 1 -->
+                <div class="layer-item open">
+                    <div class="layer-header" onclick="toggleLayer(this)">
+                        <span>1. Điểm khởi chạy và Giao diện CLI</span>
+                        <span class="layer-badge">layer:cli-entry</span>
+                    </div>
+                    <div class="layer-content">
+                        <p>Chứa các mã nguồn CLI điều khiển huấn luyện và công cụ so sánh trực quan kết quả:</p>
+                        <ul class="layer-file-list">
+                            <li class="layer-file-item">
+                                <span class="file-name">scripts/run_scratch.py</span>
+                                <span class="file-desc">Điểm khởi chạy huấn luyện các agent tự phát triển từ đầu (DQN, Dueling DDQN, PPO).</span>
+                            </li>
+                            <li class="layer-file-item">
+                                <span class="file-name">scripts/run_sb3.py</span>
+                                <span class="file-desc">Điểm khởi chạy huấn luyện baseline sử dụng thư viện Stable-Baselines3 làm quy chiếu so sánh.</span>
+                            </li>
+                            <li class="layer-file-item">
+                                <span class="file-name">scripts/evaluate.py</span>
+                                <span class="file-desc">Script đánh giá, Benchmark trực quan và vẽ biểu đồ so sánh hiệu năng các mô hình.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Layer 2 -->
+                <div class="layer-item">
+                    <div class="layer-header" onclick="toggleLayer(this)">
+                        <span>2. Các Agent tự viết từ đầu (Custom Agents)</span>
+                        <span class="layer-badge">layer:scratch-agents</span>
+                    </div>
+                    <div class="layer-content">
+                        <p>Phân lớp cốt lõi chứa các mô hình học sâu và thuật toán được lập trình trực tiếp bằng PyTorch:</p>
+                        <ul class="layer-file-list">
+                            <li class="layer-file-item">
+                                <span class="file-name">src/scratch/models.py</span>
+                                <span class="file-desc">Định nghĩa mạng Nature CNN dùng chung, đầu Dueling tách biệt và mạng Actor-Critic.</span>
+                            </li>
+                            <li class="layer-file-item">
+                                <span class="file-name">src/scratch/dqn_agent.py</span>
+                                <span class="file-desc">Lập trình Agent DQN tiêu chuẩn xử lý cập nhật Bellman và chính sách Epsilon-Greedy.</span>
+                            </li>
+                            <li class="layer-file-item">
+                                <span class="file-name">src/scratch/dueling_ddqn_agent.py</span>
+                                <span class="file-desc">Agent Dueling DDQN (D3QN) nâng cao cải thiện chất lượng học của mạng.</span>
+                            </li>
+                            <li class="layer-file-item">
+                                <span class="file-name">src/scratch/ppo_agent.py</span>
+                                <span class="file-desc">Lập trình Agent PPO từ đầu với bộ thu thập Rollouts và thuật toán GAE.</span>
+                            </li>
+                            <li class="layer-file-item">
+                                <span class="file-name">src/scratch/replay_buffer.py</span>
+                                <span class="file-desc">Bộ đệm lưu trữ trải nghiệm tối ưu hóa bộ nhớ cho off-policy training.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Layer 3 -->
+                <div class="layer-item">
+                    <div class="layer-header" onclick="toggleLayer(this)">
+                        <span>3. Bộ tiền xử lý & Tiện ích chung</span>
+                        <span class="layer-badge">layer:common-utils</span>
+                    </div>
+                    <div class="layer-content">
+                        <p>Các module tiền xử lý dữ liệu môi trường và tiện ích ghi log, thiết lập seed:</p>
+                        <ul class="layer-file-list">
+                            <li class="layer-file-item">
+                                <span class="file-name">src/common/wrappers.py</span>
+                                <span class="file-desc">Bộ bọc xử lý AtariPreprocessing và FrameStackObservation của Gymnasium.</span>
+                            </li>
+                            <li class="layer-file-item">
+                                <span class="file-name">src/common/utils.py</span>
+                                <span class="file-desc">Hàm tiện ích vẽ biểu đồ so sánh, ghi log CSV và cố định seed ngẫu nhiên.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: BỘ PHÂN TÍCH CODE THÔNG MINH (CODE INSPECTOR) -->
+        <section id="code-inspector" class="searchable-section">
+            <h2 class="section-title">4. Bộ Phân tích Code Thông minh</h2>
+            <p>Phần này phân tích sâu vào các khối code thuật toán cốt lõi. Hãy nhấp vào các Tab để khám phá chi tiết cách triển khai DQN, Dueling DDQN và PPO tự viết bằng PyTorch.</p>
+            
+            <div class="annotation-guide">
+                <strong>Hướng dẫn:</strong> Nhấp vào các huy hiệu tròn màu hồng <span class="code-annotation-marker">i</span> ngay trong khối code dưới đây để xem giải thích chi tiết về dòng lệnh đó.
+            </div>
+
+            <div class="tab-container">
+                <div class="tab-headers">
+                    <button class="tab-btn active" onclick="switchTab(this, 'tab-dqn')">Deep Q-Network (DQN)</button>
+                    <button class="tab-btn" onclick="switchTab(this, 'tab-dueling')">Dueling DDQN (D3QN)</button>
+                    <button class="tab-btn" onclick="switchTab(this, 'tab-ppo')">Proximal Policy Optimization (PPO)</button>
+                </div>
+
+                <!-- TAB CONTENT: DQN -->
+                <div class="tab-content-item active" id="tab-dqn">
+                    <p>Trong thuật toán DQN tự viết, trọng tâm nằm ở hàm cập nhật <code>update()</code> trích xuất minibatch từ Replay Buffer và tối ưu hóa hàm MSE Loss dựa trên phương trình Bellman.</p>
+                    
+                    <div class="code-block-wrapper">
+                        <div class="code-header">
+                            <span>src/scratch/dqn_agent.py (Trích đoạn hàm update)</span>
+                            <span class="code-lang-badge">Python</span>
+                        </div>
+                        <pre class="language-python"><code class="language-python"># Trích mẫu ngẫu nhiên một minibatch từ Replay Buffer
+states, actions, rewards, next_states, dones = self.replay_buffer.sample(self.batch_size)
+
+# Tính Q-value hiện tại của Agent đối với trạng thái hiện tại
+q_values = self.online_net(states) <span class="code-annotation-marker" onclick="showCodeDetail('dqn-1')">1</span>
+state_action_values = q_values.gather(1, actions.unsqueeze(1)).squeeze(1) <span class="code-annotation-marker" onclick="showCodeDetail('dqn-2')">2</span>
+
+# Tính toán giá trị Q kỳ vọng từ Target Network (phương trình Bellman)
+with torch.no_grad(): <span class="code-annotation-marker" onclick="showCodeDetail('dqn-3')">3</span>
+    next_state_values = self.target_net(next_states).max(dim=1)[0]
+    expected_state_action_values = rewards + self.gamma * next_state_values * (1.0 - dones) <span class="code-annotation-marker" onclick="showCodeDetail('dqn-4')">4</span>
+
+# Tính toán hàm mất mát Mean Squared Error
+loss = self.loss_fn(state_action_values, expected_state_action_values)
+
+# Lan truyền ngược và tối ưu hóa mạng online
+self.optimizer.zero_grad()
+loss.backward()
+torch.nn.utils.clip_grad_norm_(self.online_net.parameters(), max_norm=10.0) <span class="code-annotation-marker" onclick="showCodeDetail('dqn-5')">5</span>
+self.optimizer.step()</code></pre>
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT: DUELING DDQN -->
+                <div class="tab-content-item" id="tab-dueling">
+                    <p>Mạng Dueling DDQN chia kiến trúc mạng thành hai nhánh: Hàm giá trị trạng thái <code>V(s)</code> và Hàm lợi thế hành động <code>A(s, a)</code>. Về phần tối ưu hóa, nó kết hợp cơ chế Double DQN để giải quyết vấn đề Overestimation (đánh giá quá cao giá trị Q).</p>
+                    
+                    <div class="code-block-wrapper">
+                        <div class="code-header">
+                            <span>src/scratch/dueling_ddqn_agent.py (Hàm update Double DQN)</span>
+                            <span class="code-lang-badge">Python</span>
+                        </div>
+                        <pre class="language-python"><code class="language-python"># Tính toán giá trị Q kỳ vọng bằng công thức Double DQN
+with torch.no_grad():
+    # 1. Dùng Online Network để lựa chọn hành động tốt nhất cho trạng thái s'
+    best_actions = self.online_net(next_states).argmax(dim=1, keepdim=True) <span class="code-annotation-marker" onclick="showCodeDetail('ddqn-1')">1</span>
+    
+    # 2. Dùng Target Network để định lượng giá trị Q của hành động tốt nhất đó
+    next_state_values = self.target_net(next_states).gather(1, best_actions).squeeze(1) <span class="code-annotation-marker" onclick="showCodeDetail('ddqn-2')">2</span>
+        
+    # 3. Tính mục tiêu Bellman
+    expected_state_action_values = rewards + self.gamma * next_state_values * (1.0 - dones)</code></pre>
+                    </div>
+                    
+                    <div class="code-block-wrapper" style="margin-top: 25px;">
+                        <div class="code-header">
+                            <span>src/scratch/models.py (Cơ chế Dueling Forward)</span>
+                            <span class="code-lang-badge">Python</span>
+                        </div>
+                        <pre class="language-python"><code class="language-python"># Tính toán song song hai nhánh Value Stream V(s) và Advantage Stream A(s, a)
+values = self.value_stream(flat_out) <span class="code-annotation-marker" onclick="showCodeDetail('ddqn-3')">3</span>
+advantages = self.advantage_stream(flat_out)
+
+# Kết hợp: Q(s, a) = V(s) + A(s, a) - mean(A(s, a'))
+q_values = values + (advantages - advantages.mean(dim=1, keepdim=True)) <span class="code-annotation-marker" onclick="showCodeDetail('ddqn-4')">4</span>
+return q_values</code></pre>
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT: PPO -->
+                <div class="tab-content-item" id="tab-ppo">
+                    <p>Trong PPO, mục tiêu huấn luyện là Clipped Policy Loss và Value Loss kết hợp với hệ số Entropy để khuyến khích khám phá môi trường.</p>
+                    
+                    <div class="code-block-wrapper">
+                        <div class="code-header">
+                            <span>src/scratch/ppo_agent.py (Hàm update PPO Joint Loss)</span>
+                            <span class="code-lang-badge">Python</span>
+                        </div>
+                        <pre class="language-python"><code class="language-python"># Tính tỷ lệ xác suất chính sách mới / cũ: r_t(theta)
+ratios = torch.exp(new_log_probs - b_old_log_probs) <span class="code-annotation-marker" onclick="showCodeDetail('ppo-1')">1</span>
+
+# Tính toán hai nhánh của Clipped Policy Loss
+surr1 = ratios * b_advantages
+surr2 = torch.clamp(ratios, 1.0 - self.clip_ratio, 1.0 + self.clip_ratio) * b_advantages <span class="code-annotation-marker" onclick="showCodeDetail('ppo-2')">2</span>
+policy_loss = -torch.min(surr1, surr2).mean() <span class="code-annotation-marker" onclick="showCodeDetail('ppo-3')">3</span>
+
+# Tính toán hàm mất mát giá trị Value Loss (Clipped)
+v_loss_unclipped = (v_pred - b_returns) ** 2
+v_pred_clipped = b_old_values + torch.clamp(v_pred - b_old_values, -self.clip_ratio, self.clip_ratio)
+v_loss_clipped = (v_pred_clipped - b_returns) ** 2
+value_loss = 0.5 * torch.max(v_loss_unclipped, v_loss_clipped).mean() <span class="code-annotation-marker" onclick="showCodeDetail('ppo-4')">4</span>
+
+# Tính toán tổng hàm mất mát (Joint Objective Loss)
+loss = policy_loss + self.val_coef * value_loss - self.entropy_coef * entropy <span class="code-annotation-marker" onclick="showCodeDetail('ppo-5')">5</span></code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel thông báo động của Code Inspector -->
+            <div class="diagram-info-panel" id="codeInfoPanel" style="border-left-color: var(--secondary); margin-top: 25px;">
+                <div class="diagram-info-title" id="codeInfoTitle" style="color: var(--secondary);">Xem chi tiết các điểm dòng lệnh</div>
+                <div class="diagram-info-desc" id="codeInfoDesc">Hãy nhấp vào các số chú dẫn màu hồng ở trong phần code để xem diễn giải chi tiết cho từng nghiệp vụ lập trình.</div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: XỬ LÝ LỖI & TỐI ƯU HÓA -->
+        <section id="edge-cases" class="searchable-section">
+            <h2 class="section-title">5. Xử lý Lỗi & Tối ưu hóa Thực tế</h2>
+            <p>Reinforcement Learning là một lĩnh vực rất khó debug vì hành vi của Agent có tính ngẫu nhiên. Dưới đây là các cơ chế xử lý lỗi và tối ưu được áp dụng trong dự án:</p>
+
+            <div class="alert-box warning">
+                <div>
+                    <!-- Warning SVG Icon -->
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--secondary);">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </div>
+                <div>
+                    <div class="alert-title warning-t">Cực kỳ quan trọng: Tránh tràn bộ nhớ RAM (RAM Overflow)</div>
+                    <div class="alert-desc">Một trạng thái stack chứa 4 khung hình 84x84. Nếu lưu trữ mặc định kiểu <code>float32</code> (4 bytes/pixel), 100,000 trạng thái trong Replay Buffer sẽ chiếm tới <strong>~11.28 GB RAM</strong>. Bằng cách ép kiểu dữ liệu về <code>np.uint8</code> (1 byte/pixel) trong <code>replay_buffer.py</code>, lượng RAM tiêu thụ giảm 4 lần, chỉ còn <strong>~2.82 GB RAM</strong>. Khi trích mẫu (sampling), ta mới thực hiện chia cho <code>255.0</code> để đưa về miền <code>[0.0, 1.0]</code>.</div>
+                </div>
+            </div>
+
+            <div class="alert-box info">
+                <div>
+                    <!-- Info SVG Icon -->
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--primary);">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                </div>
+                <div>
+                    <div class="alert-title info-t">Xử lý Tương thích Gymnasium (Terminated & Truncated)</div>
+                    <div class="alert-desc">Sự thay đổi API từ phiên bản Gymnasium v0.26+ khiến nhiều bài toán RL cũ bị crash. File <code>ppo_agent.py</code> tự động nhận diện số lượng tham số trả về từ <code>env.step()</code> để tương thích ngược, đảm bảo lấy đúng trạng thái kết thúc (<code>done = terminated or truncated</code>) when chạy trên các máy tính có cài đặt thư viện khác nhau.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: CHẠY THỰC NGHIỆM & BENCHMARK -->
+        <section id="benchmark" class="searchable-section">
+            <h2 class="section-title">6. Chạy Thực nghiệm & Benchmark</h2>
+            <p>Để khởi chạy huấn luyện và tiến hành so sánh kết quả giữa các agent, bạn cần sử dụng môi trường <code>uv</code> đã được cấu hình sẵn trong dự án hiện tại.</p>
+            
+            <h3 style="font-size: 19px; font-weight: 700; margin: 20px 0 10px 0;">1. Huấn luyện Agent tự viết (Scratch Agent)</h3>
+            <p>Bạn có thể lựa chọn huấn luyện <code>dqn</code>, <code>dueling_ddqn</code>, hoặc <code>ppo</code>:</p>
+            <div class="cli-code">
+                <span id="cliCmd1">uv run scripts/run_scratch.py --agent dueling_ddqn --episodes 100 --lr 1e-4</span>
+                <button class="copy-btn" onclick="copyCliText('cliCmd1')">Copy</button>
+            </div>
+
+            <h3 style="font-size: 19px; font-weight: 700; margin: 25px 0 10px 0;">2. Huấn luyện Baseline Agent (Stable-Baselines3)</h3>
+            <p>Huấn luyện PPO baseline chuẩn của thư viện SB3:</p>
+            <div class="cli-code">
+                <span id="cliCmd2">uv run scripts/run_sb3.py --algo ppo --timesteps 50000</span>
+                <button class="copy-btn" onclick="copyCliText('cliCmd2')">Copy</button>
+            </div>
+
+            <h3 style="font-size: 19px; font-weight: 700; margin: 25px 0 10px 0;">3. Đánh giá và Vẽ biểu đồ so sánh</h3>
+            <p>Sau khi lưu kết quả log CSV dưới thư mục <code>data/logs/</code>, chạy lệnh sau để tự động tổng hợp kết quả huấn luyện và vẽ biểu đồ so sánh phần thưởng nhận được:</p>
+            <div class="cli-code">
+                <span id="cliCmd3">uv run scripts/evaluate.py</span>
+                <button class="copy-btn" onclick="copyCliText('cliCmd3')">Copy</button>
+            </div>
+        </section>
+
+        <!-- SECTION 7: CÂU HỎI CỦNG CỐ TƯƠNG TÁC -->
+        <section id="quiz" class="searchable-section">
+            <h2 class="section-title">7. Câu hỏi Ôn tập Củng cố</h2>
+            <p>Hãy tự kiểm tra kiến thức lập trình Reinforcement Learning của bạn với các câu hỏi tương tác dưới đây:</p>
+
+            <!-- Quiz 1 -->
+            <div class="quiz-item" id="quiz-block-1">
+                <div class="quiz-question">Câu hỏi 1: Tại sao Double DQN lại khắc phục được vấn đề Overestimation của DQN gốc?</div>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="selectQuizOption(this, 1, 'A')">A. Nó nhân đôi kích thước của bộ đệm Replay Buffer để học hiệu quả hơn.</div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 1, 'B')">B. Nó tách biệt việc chọn hành động tốt nhất (bằng Online Net) và việc định lượng giá trị Q của hành động đó (bằng Target Net).</div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 1, 'C')">C. Nó tăng hệ số chiết khấu gamma lên cao để ưu tiên phần thưởng dài hạn.</div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="quiz-action-btn" onclick="submitQuizAnswer(1, 'B')">Kiểm tra Đáp án</button>
+                </div>
+                <div class="quiz-feedback" id="quiz-feedback-1"></div>
+            </div>
+
+            <!-- Quiz 2 -->
+            <div class="quiz-item" id="quiz-block-2">
+                <div class="quiz-question">Câu hỏi 2: Vai trò chính của GAE (Generalized Advantage Estimation) trong PPO là gì?</div>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="selectQuizOption(this, 2, 'A')">A. Nhằm cân bằng giữa độ chệch (bias) và phương sai (variance) khi ước lượng giá trị Advantage giúp tối ưu hóa policy ổn định.</div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 2, 'B')">B. Nhằm đẩy nhanh tốc độ lấy mẫu từ môi trường song song.</div>
+                    <div class="quiz-option" onclick="selectQuizOption(this, 2, 'C')">C. Nhằm mục đích tự động cắt giảm kích thước ảnh trạng thái đầu vào.</div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="quiz-action-btn" onclick="submitQuizAnswer(2, 'A')">Kiểm tra Đáp án</button>
+                </div>
+                <div class="quiz-feedback" id="quiz-feedback-2"></div>
+            </div>
+        </section>
+
+        <footer>
+            <p>Pong Reinforcement Learning Comparison &copy; 2026. Thiết kế dành cho học tập học máy và AI nâng cao.</p>
+        </footer>
+    </main>
+</div>
+
+<!-- ==========================================================================
+   INTERACTIVE JAVASCRIPT: LOGIC TƯƠNG TÁC CỦA SPA DASHBOARD
+   ========================================================================== -->
+<script>
+    /* ==========================================================================
+       1. DỮ LIỆU GIẢI THÍCH SƠ ĐỒ WORKFLOW (SVG CLICK)
+       ========================================================================== */
+    const workflowDetails = {
+        raw: {
+            title: "1. Atari Frame (Khung hình gốc)",
+            desc: "Khung hình gốc trích xuất trực tiếp từ máy giả lập Atari (ALE) có độ phân giải màu 210x160x3 RGB. Khung hình đơn lẻ này không chứa thông tin động về hướng chuyển động và tốc độ của quả bóng, do đó cần phải được tiền xử lý."
+        },
+        prep: {
+            title: "2. Preprocessing (Tiền xử lý khung hình)",
+            desc: "Áp dụng AtariPreprocessing: (a) Noop Reset: thực hiện ngẫu nhiên tối đa 30 hành động no-op ban đầu để tạo tính đa dạng; (b) Frame Skip: lặp lại mỗi hành động 4 lần và lấy giá trị pixel lớn nhất (Max Pool) giữa 2 khung hình cuối để tránh hiện tượng bóng nhấp nháy; (c) Chuyển đổi màu RGB thành ảnh xám Grayscale."
+        },
+        resize: {
+            title: "3. Resize & Scale (Thu nhỏ & Chuẩn hóa)",
+            desc: "Giảm độ phân giải ảnh xám từ 210x160 về 84x84 để giảm thiểu tối đa khối lượng tính toán cho mạng tích chập CNN. Tiếp đó, các giá trị pixel từ [0, 255] được chuẩn hóa ép kiểu về [0.0, 1.0] dạng float32 để tăng tốc độ hội tụ khi huấn luyện gradient."
+        },
+        stack: {
+            title: "4. Frame Stack (Xếp chồng khung hình)",
+            desc: "Thực hiện FrameStackObservation xếp chồng 4 khung hình 84x84x1 liên tiếp để tạo ra một tensor trạng thái có kích thước 4x84x84. Việc xếp chồng này cực kỳ quan trọng vì nó giúp mạng CNN nhận biết được vận tốc, quỹ đạo và hướng di chuyển của cả quả bóng và thanh đỡ."
+        },
+        tensor: {
+            title: "5. CNN Input (Đầu vào mạng Neural)",
+            desc: "Trạng thái tensor hoàn chỉnh 4x84x84 sẵn sàng được nạp trực tiếp vào PyTorch CNN. Đây chính là đầu vào để DQN dự đoán giá trị Q của các hành động, hoặc Actor-Critic trong PPO dự đoán phân phối hành động (logits) và giá trị trạng thái."
+        }
+    };
+
+    function showWorkflowDetail(nodeId) {
+        // Tắt kích hoạt tất cả các nodes
+        document.querySelectorAll('.flow-node').forEach(node => {
+            node.classList.remove('active');
+        });
+        document.querySelectorAll('.flow-line').forEach(line => {
+            line.classList.remove('active');
+        });
+
+        // Bật kích hoạt node được chọn
+        const selectedNode = document.getElementById(`node-${nodeId}`);
+        if (selectedNode) {
+            selectedNode.classList.add('active');
+        }
+
+        // Cập nhật thông tin chi tiết vào Panel
+        const data = workflowDetails[nodeId];
+        if (data) {
+            document.getElementById('workflowInfoTitle').innerText = data.title;
+            document.getElementById('workflowInfoDesc').innerText = data.desc;
+        }
+    }
+
+    /* ==========================================================================
+       2. DỮ LIỆU CHÚ THÍCH MÃ NGUỒN (CODE INSPECTOR ANNOTATIONS)
+       ========================================================================== */
+    const codeDetails = {
+        'dqn-1': {
+            title: "Tính giá trị Q hiện tại của Online Net",
+            desc: "Dùng Online Network dự đoán giá trị Q-value cho toàn bộ 6 hành động có thể thực hiện tại trạng thái `states` hiện tại."
+        },
+        'dqn-2': {
+            title: "Trích xuất giá trị Q của hành động đã thực hiện",
+            desc: "Dùng hàm `gather(1, actions.unsqueeze(1))` để chỉ lọc ra giá trị Q tương ứng với hành động thực tế mà Agent đã lựa chọn và thực hiện trong quá khứ."
+        },
+        'dqn-3': {
+            title: "Tắt tính toán Gradient cho Target Network",
+            desc: "Bọc trong khối lệnh `with torch.no_grad():` để tắt bộ lưu vết gradient. Việc này giúp tiết kiệm tối đa bộ nhớ VRAM của GPU và tăng tốc tính toán vì ta không cập nhật mạng target bằng lan truyền ngược thông thường."
+        },
+        'dqn-4': {
+            title: "Phương trình cập nhật Bellman",
+            desc: "Công thức toán học cốt lõi: Q_kỳ_vọng = Reward + gamma * Q_target(s', max_a) * (1 - done). Nếu trạng thái tiếp theo là kết thúc (done=1), giá trị Q kỳ vọng sẽ chính bằng phần thưởng tức thời."
+        },
+        'dqn-5': {
+            title: "Cắt xén Gradient (Gradient Clipping)",
+            desc: "Áp dụng `clip_grad_norm_` giới hạn norm của gradient tối đa là 10.0. Đây là kỹ thuật vô cùng quan trọng trong Deep RL giúp ngăn chặn hiện tượng bùng nổ gradient làm hỏng mạng khi DQN cập nhật bất ổn định."
+        },
+        'ddqn-1': {
+            title: "Double DQN: Lựa chọn hành động tốt nhất bằng Online Net",
+            desc: "Điểm cải tiến cốt lõi của Double DQN: Dùng mạng đang cập nhật (`online_net`) dự đoán hành động tốt nhất cho trạng thái tiếp theo `next_states` bằng hàm `argmax()`."
+        },
+        'ddqn-2': {
+            title: "Double DQN: Định giá hành động đó bằng Target Net",
+            desc: "Sau khi `online_net` đã chọn hành động tốt nhất, ta dùng mạng ổn định hơn (`target_net`) để tính toán giá trị Q của hành động này. Cơ chế tách biệt 'chọn hành động' và 'đánh giá hành động' này giúp triệt tiêu hoàn toàn lỗi đánh giá quá cao (Overestimation bias) của DQN gốc."
+        },
+        'ddqn-3': {
+            title: "Mạng Dueling: Tách biệt Value Stream V(s)",
+            desc: "Nhánh `value_stream` chỉ nhận trạng thái `flat_out` và dự đoán một giá trị vô hướng duy nhất biểu diễn giá trị của bản thân trạng thái đó mà không phụ thuộc hành động nào."
+        },
+        'ddqn-4': {
+            title: "Công thức kết hợp Dueling Q-Value",
+            desc: "Q(s, a) = V(s) + A(s, a) - trung_bình(A(s, a')). Việc trừ đi trung bình của Advantage giúp tăng tính ổn định toán học, giúp mạng học được lợi thế tương đối của từng hành động so với mặt bằng chung."
+        },
+        'ppo-1': {
+            title: "Tính toán tỉ số chính sách (Probability Ratio)",
+            desc: "Tỉ số r_t(theta) = pi_new(a|s) / pi_old(a|s). Vì làm việc trong không gian log_prob, ta tính bằng hàm mũ `torch.exp(new_log_probs - old_log_probs)`."
+        },
+        'ppo-2': {
+            title: "Cắt xén tỉ số (Policy Clipping)",
+            desc: "Ép giá trị tỉ số r_t nằm chặt chẽ trong khoảng `[1 - clip_ratio, 1 + clip_ratio]` (thường là [0.8, 1.2]). Điều này ngăn không cho chính sách mới thay đổi quá xa so với chính sách cũ, đảm bảo học an toàn."
+        },
+        'ppo-3': {
+            title: "Hàm mục tiêu bi quan (Pessimistic Objective)",
+            desc: "Lấy giá trị tối thiểu (`torch.min`) giữa hàm chưa cắt xén và hàm cắt xén. Đây là cơ chế cốt lõi của PPO giúp thuật toán cập nhật chính sách một cách thận trọng, cải thiện độ ổn định huấn luyện đáng kể."
+        },
+        'ppo-4': {
+            title: "Cắt xén hàm mất mát giá trị (Value Function Clipping)",
+            desc: "Tương tự chính sách, hàm mất mát của Value Network cũng được cắt xén xung quanh giá trị dự đoán cũ để đảm bảo mạng Critic không cập nhật quá đột ngột."
+        },
+        'ppo-5': {
+            title: "Hợp nhất các hàm mục tiêu (Joint Loss Function)",
+            desc: "Tổng Loss = Policy Loss + c1 * Value Loss - c2 * Entropy. Dấu trừ trước hệ số Entropy giúp tăng Loss khi chính sách quá tập trung vào 1 hành động duy nhất, khuyến khích Agent tiếp tục thử nghiệm khám phá môi trường."
+        }
+    };
+
+    function showCodeDetail(annotationId) {
+        const data = codeDetails[annotationId];
+        if (data) {
+            document.getElementById('codeInfoTitle').innerText = data.title;
+            document.getElementById('codeInfoDesc').innerText = data.desc;
+        }
+    }
+
+    /* ==========================================================================
+       3. BỘ CHUYỂN ĐỔI TAB ĐỘNG CHO CODE INSPECTOR
+       ========================================================================== */
+    function switchTab(btn, tabId) {
+        // Tắt hoạt động tất cả các nút tab
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('active');
+        });
+        // Kích hoạt nút tab hiện tại
+        btn.classList.add('active');
+
+        // Tắt hiển thị tất cả các tab nội dung
+        document.querySelectorAll('.tab-content-item').forEach(content => {
+            content.classList.remove('active');
+        });
+        // Hiển thị tab nội dung được chọn
+        const targetContent = document.getElementById(tabId);
+        if (targetContent) {
+            targetContent.classList.add('active');
+        }
+
+        // Reset panel thông tin chi tiết code
+        document.getElementById('codeInfoTitle').innerText = "Xem chi tiết các điểm dòng lệnh";
+        document.getElementById('codeInfoDesc').innerText = "Hãy nhấp vào các số chú dẫn màu hồng ở trong phần code để xem diễn giải chi tiết cho từng nghiệp vụ lập trình.";
+    }
+
+    /* ==========================================================================
+       4. LOGIC ACCORDION CHO PHÂN LỚP KIẾN TRÚC MÃ NGUỒN
+       ========================================================================== */
+    function toggleLayer(header) {
+        const layerItem = header.parentElement;
+        layerItem.classList.toggle('open');
+    }
+
+    /* ==========================================================================
+       5. BỘ LỌC TÌM KIẾM ĐỘNG TRÊN SIDEBAR (SEARCH CONTROLLER)
+       ========================================================================== */
+    document.getElementById('sidebarSearch').addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase().trim();
+        const sections = document.querySelectorAll('.searchable-section');
+
+        sections.forEach(section => {
+            const text = section.innerText.toLowerCase();
+            if (text.includes(query)) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        });
+    });
+
+    /* ==========================================================================
+       6. LOGIC ĐÁNH GIÁ CÂU HỎI TRẮC NGHIỆM TƯƠNG TÁC (QUIZ)
+       ========================================================================== */
+    const userAnswers = {};
+
+    function selectQuizOption(optionElement, questionNum, optionLetter) {
+        // Bỏ chọn tất cả các tùy chọn trong câu hỏi này
+        const siblings = optionElement.parentElement.querySelectorAll('.quiz-option');
+        siblings.forEach(el => el.classList.remove('selected'));
+
+        // Chọn tùy chọn hiện tại
+        optionElement.classList.add('selected');
+        userAnswers[questionNum] = optionLetter;
+    }
+
+    function submitQuizAnswer(questionNum, correctAnswer) {
+        const selectedLetter = userAnswers[questionNum];
+        const feedbackEl = document.getElementById(`quiz-feedback-${questionNum}`);
+
+        if (!selectedLetter) {
+            feedbackEl.className = "quiz-feedback incorrect";
+            feedbackEl.innerText = "Vui lòng lựa chọn một phương án trước khi kiểm tra đáp án.";
+            feedbackEl.style.display = "block";
+            return;
+        }
+
+        if (selectedLetter === correctAnswer) {
+            feedbackEl.className = "quiz-feedback correct";
+            if (questionNum === 1) {
+                feedbackEl.innerText = "Chính xác tuyệt đối! Double DQN tách biệt việc 'lựa chọn hành động tốt nhất' (sử dụng Online Net) và 'định lượng giá trị' của hành động đó (sử dụng Target Net). Cơ chế này giúp loại bỏ hoàn toàn hiện tượng đánh giá quá cao (Overestimation bias).";
+            } else if (questionNum === 2) {
+                feedbackEl.innerText = "Chính xác tuyệt đối! GAE cung cấp một tham số lambda để trượt mượt mà giữa TD(0) (độ chệch cao, phương sai thấp) và Monte Carlo (độ chệch thấp, phương sai cao), giúp việc ước lượng Advantage ổn định và tối ưu hóa chính sách an toàn.";
+            }
+        } else {
+            feedbackEl.className = "quiz-feedback incorrect";
+            feedbackEl.innerText = "Rất tiếc, câu trả lời chưa chính xác. Bạn hãy suy nghĩ lại hoặc tham khảo tài liệu phân tích ở các phần trên nhé!";
+        }
+        feedbackEl.style.display = "block";
+    }
+
+    /* ==========================================================================
+       7. SAO CHÉP LỆNH CLI NHANH
+       ========================================================================== */
+    function copyCliText(elementId) {
+        const textToCopy = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const btn = document.querySelector(`#${elementId} + .copy-btn`);
+            const originalText = btn.innerText;
+            btn.innerText = "Copied!";
+            btn.style.color = "#00ffcc";
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.color = "var(--text-muted)";
+            }, 2000);
+        });
+    }
+
+    /* ==========================================================================
+       8. LOGIC SCROLL-SPY ĐỒNG BỘ THANH SIDEBAR KHI CUỘN
+       ========================================================================== */
+    window.addEventListener('scroll', () => {
+        const sections = document.querySelectorAll('.searchable-section');
+        const navItems = document.querySelectorAll('.nav-item');
+        let currentSectionId = '';
+
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+            if (pageYOffset >= (sectionTop - 150)) {
+                currentSectionId = section.getAttribute('id');
+            }
+        });
+
+        navItems.forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('data-section') === currentSectionId) {
+                item.classList.add('active');
+            }
+        });
+    });
+</script>
+
+<!-- Prism.js để tự động tô màu cú pháp Python -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<!-- Prism Keep Markup Plugin để giữ lại các huy hiệu tương tác trong khối code -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/keep-markup/prism-keep-markup.min.js"></script>
+
+</body>
+</html>

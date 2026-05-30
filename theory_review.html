@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RL VKU Exam Prep - Cyberpunk Interactive Dashboard</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX CDN for Fast Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    
+    <!-- Chart.js CDN for Sandbox Simulation -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-main: #f5f5f7;
+            --bg-card: rgba(255, 255, 255, 0.85);
+            --bg-sidebar: rgba(255, 255, 255, 0.95);
+            --border-neon-cyan: rgba(0, 102, 204, 0.2);
+            --border-neon-cyan-glow: rgba(0, 102, 204, 0.7);
+            --neon-cyan: #0066cc;
+            --neon-blue: #0052a3;
+            --neon-emerald: #27ae60;
+            --neon-purple: #8e44ad;
+            --neon-red: #d63031;
+            --neon-orange: #e67e22;
+            --text-primary: #1d1d1f;
+            --text-secondary: #515154;
+            --font-main: 'Inter', sans-serif;
+            --font-title: 'Outfit', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 5% 5%, rgba(127, 0, 255, 0.06) 0px, transparent 40%),
+                radial-gradient(at 95% 95%, rgba(0, 242, 254, 0.06) 0px, transparent 40%);
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-neon-cyan);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            backdrop-filter: blur(15px);
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 2.5rem;
+        }
+
+        .brand h1 {
+            font-family: var(--font-title);
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .brand span {
+            font-size: 0.72rem;
+            color: var(--neon-emerald);
+            font-family: var(--font-code);
+            letter-spacing: 1.5px;
+            margin-top: 0.3rem;
+            text-transform: uppercase;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            list-style: none;
+        }
+
+        .nav-item a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-family: var(--font-title);
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item a:hover, .nav-item.active a {
+            color: var(--neon-cyan);
+            background: rgba(0, 102, 204, 0.04);
+            border: 1px solid var(--border-neon-cyan-glow);
+            box-shadow: 0 0 15px rgba(0, 102, 204, 0.08);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active a {
+            border-left: 4px solid var(--neon-cyan);
+        }
+
+        /* Main Content Container */
+        .main-container {
+            margin-left: 280px;
+            flex: 1;
+            padding: 2.5rem;
+            max-width: 1250px;
+        }
+
+        /* Header / Controls Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .page-title {
+            font-family: var(--font-title);
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        /* Notation Switcher Button Styling */
+        .switcher-box {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 0.4rem 0.8rem;
+            border-radius: 30px;
+            border: 1px solid var(--border-neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.04);
+        }
+
+        .switcher-label {
+            font-family: var(--font-title);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .switcher-label.active {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 8px rgba(0, 242, 254, 0.4);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.08);
+            transition: .3s;
+            border-radius: 34px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--neon-cyan);
+            box-shadow: 0 0 8px var(--neon-cyan);
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: rgba(0, 242, 254, 0.08);
+            border-color: var(--neon-cyan);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+            background-color: var(--neon-emerald);
+            box-shadow: 0 0 8px var(--neon-emerald);
+        }
+
+        /* Glassmorphic Cyberpunk Card */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-neon-cyan);
+            border-radius: 12px;
+            padding: 2.2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: var(--border-neon-cyan-glow);
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.08);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+            opacity: 0.6;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-family: var(--font-title);
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: var(--text-primary);
+        }
+
+        .card-badge {
+            background: rgba(0, 245, 160, 0.08);
+            border: 1px solid var(--neon-emerald);
+            color: var(--neon-emerald);
+            font-family: var(--font-code);
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Text and Structure inside Cards */
+        p {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            margin-bottom: 1.2rem;
+        }
+
+        p strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        ol, ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        ol li, ul li {
+            margin-bottom: 0.6rem;
+        }
+
+        ol strong, ul strong {
+            color: var(--text-primary);
+        }
+
+        /* List Styling */
+        .parameter-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin: 1.5rem 0;
+            padding-left: 0;
+        }
+
+        .parameter-item {
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .parameter-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(0, 242, 254, 0.12);
+        }
+
+        .param-symbol {
+            min-width: 40px;
+            height: 40px;
+            background: rgba(0, 242, 254, 0.04);
+            border: 1px solid var(--border-neon-cyan);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-code);
+            font-size: 1rem;
+            color: var(--neon-cyan);
+            box-shadow: inset 0 0 8px rgba(0, 242, 254, 0.1);
+        }
+
+        .param-desc {
+            flex: 1;
+        }
+
+        .param-desc h4 {
+            font-family: var(--font-title);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.1rem;
+        }
+
+        .param-desc p {
+            font-size: 0.82rem;
+            margin-bottom: 0;
+            line-height: 1.5;
+        }
+
+        /* Mathematical Formulas Presentation */
+        .formula-container {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px dashed var(--border-neon-cyan);
+            border-radius: 8px;
+            padding: 1.2rem;
+            margin: 1.5rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: auto;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .formula-container:hover {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 242, 254, 0.02);
+            box-shadow: inset 0 0 15px rgba(0, 242, 254, 0.04);
+        }
+
+        .formula-hint {
+            position: absolute;
+            top: 0.3rem;
+            right: 0.5rem;
+            font-size: 0.6rem;
+            font-family: var(--font-code);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.4;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .formula-container:hover .formula-hint {
+            opacity: 1;
+            color: var(--neon-cyan);
+        }
+
+        /* Interactive Explorer Panel */
+        .explorer-panel {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 380px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid var(--border-neon-cyan-glow);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 40px rgba(0, 102, 204, 0.15);
+            z-index: 200;
+            backdrop-filter: blur(15px);
+            display: none;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .explorer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.6rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .explorer-title {
+            font-family: var(--font-title);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.25);
+        }
+
+        .explorer-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: var(--font-code);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .explorer-close:hover {
+            color: var(--neon-red);
+        }
+
+        .explorer-math {
+            font-size: 1.15rem;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 6px;
+            padding: 0.6rem;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 0.8rem;
+            border: 1px solid var(--border-neon-cyan);
+            overflow-x: auto;
+        }
+
+        .explorer-content p {
+            font-size: 0.82rem;
+            line-height: 1.6;
+            margin-bottom: 0.6rem;
+        }
+
+        /* SVG Flow Visualizer */
+        .visualizer-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 1.2rem;
+            margin: 1.5rem 0;
+        }
+
+        .visualizer-title {
+            font-family: var(--font-title);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--neon-cyan);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .visualizer-svg-box {
+            width: 100%;
+            height: auto;
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 6px;
+            padding: 1rem;
+        }
+
+        /* SVG Glow and Animation Elements */
+        .svg-flow-path {
+            stroke-dasharray: 8, 8;
+            animation: flowDash 30s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to { stroke-dashoffset: -1000; }
+        }
+
+        .svg-glow-circle {
+            animation: pulseGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { r: 4px; opacity: 0.6; }
+            100% { r: 7px; opacity: 1; filter: drop-shadow(0 0 5px var(--neon-cyan)); }
+        }
+
+        /* Section Navigation Wrapper */
+        .section-view {
+            display: none;
+        }
+
+        .section-view.active-view {
+            display: block;
+        }
+
+        /* Hyperparameter Sandbox Controls */
+        .sandbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2rem;
+        }
+
+        .sandbox-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .slider-group {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .slider-title {
+            font-family: var(--font-title);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .slider-value {
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+            color: var(--neon-cyan);
+            font-weight: bold;
+        }
+
+        .slider-input {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            transition: background 0.3s;
+        }
+
+        .slider-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--neon-cyan);
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--neon-cyan);
+            transition: transform 0.1s;
+        }
+
+        .slider-input::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+        }
+
+        .slider-desc {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-top: 0.4rem;
+            line-height: 1.4;
+        }
+
+        .sandbox-chart-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 380px;
+        }
+
+        /* Quiz Engine Styling */
+        .quiz-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 0.8rem;
+        }
+
+        .quiz-progress {
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+            color: var(--neon-cyan);
+        }
+
+        .quiz-score-badge {
+            background: rgba(127, 0, 255, 0.1);
+            border: 1px solid var(--neon-purple);
+            color: var(--neon-purple);
+            font-family: var(--font-title);
+            font-weight: bold;
+            font-size: 0.85rem;
+            padding: 0.25rem 0.8rem;
+            border-radius: 20px;
+        }
+
+        .quiz-question-box h3 {
+            font-family: var(--font-title);
+            font-size: 1.15rem;
+            font-weight: 600;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .quiz-option {
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem 1.2rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .quiz-option:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(0, 102, 204, 0.2);
+            color: var(--neon-cyan);
+        }
+
+        .quiz-option.selected {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 102, 204, 0.05);
+            color: var(--neon-cyan);
+        }
+
+        .quiz-option.correct {
+            border-color: var(--neon-emerald) !important;
+            background: rgba(0, 245, 160, 0.05) !important;
+            color: var(--neon-emerald) !important;
+        }
+
+        .quiz-option.incorrect {
+            border-color: var(--neon-red) !important;
+            background: rgba(255, 51, 102, 0.05) !important;
+            color: var(--neon-red) !important;
+        }
+
+        .quiz-opt-letter {
+            width: 28px;
+            height: 28px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-code);
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .quiz-option.selected .quiz-opt-letter {
+            background: var(--neon-cyan);
+            color: #000;
+            border-color: var(--neon-cyan);
+        }
+
+        .quiz-option.correct .quiz-opt-letter {
+            background: var(--neon-emerald) !important;
+            color: #000 !important;
+            border-color: var(--neon-emerald) !important;
+        }
+
+        .quiz-option.incorrect .quiz-opt-letter {
+            background: var(--neon-red) !important;
+            color: #000 !important;
+            border-color: var(--neon-red) !important;
+        }
+
+        .quiz-action-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        .quiz-btn {
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+            border: none;
+            color: #fff;
+            font-family: var(--font-title);
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding: 0.7rem 1.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(127, 0, 255, 0.3);
+        }
+
+        .quiz-btn:hover {
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .quiz-explanation-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1.2rem 1.5rem;
+            margin-top: 1rem;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+
+        .quiz-explanation-box h4 {
+            font-family: var(--font-title);
+            color: var(--neon-emerald);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand">
+            <h1>Pong RL</h1>
+            <span>Theory Review</span>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item active" data-target="view-mdp"><a href="#mdp">1. MDP Theory</a></li>
+            <li class="nav-item" data-target="view-dqn"><a href="#dqn">2. DQN Scratch</a></li>
+            <li class="nav-item" data-target="view-dueling"><a href="#dueling">3. Dueling DDQN</a></li>
+            <li class="nav-item" data-target="view-ppo"><a href="#ppo">4. PPO & GAE</a></li>
+            <li class="nav-item" data-target="view-sandbox"><a href="#sandbox">5. Hyperparameter Sandbox</a></li>
+            <li class="nav-item" data-target="view-quiz"><a href="#quiz">6. Exam Quiz Center</a></li>
+        </ul>
+    </aside>
+
+    <!-- MAIN CONTAINER -->
+    <main class="main-container">
+        
+        <!-- TOP BAR -->
+        <header class="top-bar">
+            <h2 class="page-title" id="page-title-text">Markov Decision Process</h2>
+            
+            <!-- NOTATION SWITCHER -->
+            <div class="switcher-box">
+                <span class="switcher-label" id="label-vku">VKU (x, u, q)</span>
+                <label class="switch">
+                    <input type="checkbox" id="notation-toggle">
+                    <span class="slider"></span>
+                </label>
+                <span class="switcher-label" id="label-intl">International (s, a, Q)</span>
+            </div>
+        </header>
+
+        <!-- VIEW 1: MDP -->
+        <section id="view-mdp" class="section-view active-view">
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Mô hình hóa lý thuyết MDP</h3>
+                    <span class="card-badge">Cơ sở lý thuyết</span>
+                </div>
+                
+                <p>
+                    Trong Reinforcement Learning, **Markov Decision Process (MDP)** cung cấp khung toán học chuẩn tắc để mô tả một môi trường tương tác có trạng thái, nơi các quyết định đưa ra có tính chất ngẫu nhiên và ảnh hưởng tới các trạng thái tương lai.
+                </p>
+                <p>
+                    Một tiến trình MDP hữu hạn được biểu diễn toán học dưới dạng một bộ 5 thành phần (Tuple):
+                </p>
+
+                <!-- Equation 1: MDP Tuple -->
+                <div class="formula-container" data-expr="\mathcal{M} = \langle \mathcal{X}, \mathcal{U}, \mathcal{P}, \mathcal{R}, \gamma \rangle">
+                    <span class="math-expr" data-expr="\mathcal{M} = \langle \mathcal{X}, \mathcal{U}, \mathcal{P}, \mathcal{R}, \gamma \rangle"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+
+                <p>Định nghĩa chặt chẽ từng thành phần toán học trong bộ 5:</p>
+                <ul class="parameter-list">
+                    <li class="parameter-item">
+                        <div class="param-symbol"><span class="math-expr" data-expr="\mathcal{X}"></span></div>
+                        <div class="param-desc">
+                            <h4>Không gian trạng thái (State Space)</h4>
+                            <p>Tập hợp tất cả các trạng thái có thể có của môi trường. Trong Atari Pong, trạng thái được biểu diễn bằng 4 khung ảnh xếp chồng (frame stack) để thu nhận cả thông tin vận tốc và hướng di chuyển của bóng.</p>
+                        </div>
+                    </li>
+                    <li class="parameter-item">
+                        <div class="param-symbol"><span class="math-expr" data-expr="\mathcal{U}"></span></div>
+                        <div class="param-desc">
+                            <h4>Không gian hành động (Action Space)</h4>
+                            <p>Tập hợp tất cả các quyết định Agent có thể thực hiện. Đối với Pong, tập hành động là rời rạc bao gồm: Đứng yên, Lên trên, Xuống dưới.</p>
+                        </div>
+                    </li>
+                    <li class="parameter-item">
+                        <div class="param-symbol"><span class="math-expr" data-expr="\mathcal{P}"></span></div>
+                        <div class="param-desc">
+                            <h4>Mô hình chuyển trạng thái (Transition Probability)</h4>
+                            <p>Xác suất ngẫu nhiên để chuyển từ trạng thái hiện tại sang trạng thái tiếp theo sau khi thực hiện hành động. Định nghĩa toán học: <span class="math-expr" data-expr="\mathcal{P}(\state_{k+1} \vert \state_k, \action_k)"></span>.</p>
+                        </div>
+                    </li>
+                    <li class="parameter-item">
+                        <div class="param-symbol"><span class="math-expr" data-expr="\mathcal{R}"></span></div>
+                        <div class="param-desc">
+                            <h4>Hàm phần thưởng (Reward Function)</h4>
+                            <p>Hàm số phản hồi giá trị phần thưởng ngay lập tức nhận được khi chuyển đổi trạng thái: <span class="math-expr" data-expr="\mathcal{R}(\state_k, \action_k, \state_{k+1})"></span>. Ở game Pong, phần thưởng là $+1$ khi đối phương bỏ lỡ bóng và $-1$ khi Agent bỏ lỡ bóng.</p>
+                        </div>
+                    </li>
+                    <li class="parameter-item">
+                        <div class="param-symbol"><span class="math-expr" data-expr="\gamma"></span></div>
+                        <div class="param-desc">
+                            <h4>Hệ số chiết khấu (Discount Factor)</h4>
+                            <p>Tham số thực thuộc khoảng <span class="math-expr" data-expr="[0, 1]"></span> dùng để xác định tầm quan trọng của phần thưởng tương lai so với phần thưởng hiện tại. Tránh việc tính tổng phần thưởng vô hạn bị phân kỳ.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Hàm giá trị trạng thái & Mục tiêu tối ưu</h3>
+                    <span class="card-badge">Toán học tối ưu</span>
+                </div>
+                <p>
+                    Mục tiêu cốt lõi của Agent là tìm kiếm một chiến sách (policy) <span class="math-expr" data-expr="\policy"></span> tối ưu để cực đại hóa kỳ vọng của tổng phần thưởng chiết khấu tích lũy:
+                </p>
+
+                <!-- Equation 2: Bellman State Value -->
+                <div class="formula-container" data-expr="V^{\policy}(\state) = \mathbb{E}_{\policy} \left[ \sum_{k=0}^{\infty} \gamma^k \mathcal{R}_k \;\middle\vert\; \state_0 = \state \right]">
+                    <span class="math-expr" data-expr="V^{\policy}(\state) = \mathbb{E}_{\policy} \left[ \sum_{k=0}^{\infty} \gamma^k \mathcal{R}_k \;\middle\vert\; \state_0 = \state \right]"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+
+                <p>
+                    Phương trình Bellman cho hàm giá trị hành động thể hiện mối liên hệ đệ quy giữa trạng thái hiện tại và trạng thái tương lai:
+                </p>
+
+                <!-- Equation 3: Bellman action value equation -->
+                <div class="formula-container" data-expr="\qval^{\policy}(\state, \action) = \mathbb{E} \left[ r + \gamma \qval^{\policy}(\stateNext, \actionNext) \;\middle\vert\; \state_0 = \state, \action_0 = \action \right]">
+                    <span class="math-expr" data-expr="\qval^{\policy}(\state, \action) = \mathbb{E} \left[ r + \gamma \qval^{\policy}(\stateNext, \actionNext) \;\middle\vert\; \state_0 = \state, \action_0 = \action \right]"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- VIEW 2: DQN -->
+        <section id="view-dqn" class="section-view">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Deep Q-Network (DQN) chuẩn tắc</h3>
+                    <span class="card-badge">Value-based Scratch</span>
+                </div>
+                <p>
+                    Trong không gian trạng thái liên tục hoặc quá lớn như màn hình pixel của Pong, chúng ta không thể sử dụng bảng Q-table để tra cứu. DQN giải quyết vấn đề này bằng cách xấp xỉ hóa hàm Q-value bằng một mạng neural tích chập (Nature CNN) với tham số trọng số <span class="math-expr" data-expr="\weights"></span>.
+                </p>
+                <p>
+                    Hai cơ chế cốt lõi giúp DQN ổn định hóa quá trình huấn luyện mạng neural phi tuyến:
+                </p>
+                <ol>
+                    <li><strong>Experience Replay (Bộ đệm trải nghiệm):</strong> Phá vỡ tính tương quan tuần tự của dữ liệu bằng cách lưu trữ các transition vào bộ đệm và sample ngẫu nhiên thành các mini-batches để huấn luyện như học có giám sát độc lập (i.i.d).</li>
+                    <li><strong>Target Network (Mạng đích):</strong> Sử dụng bộ trọng số độc lập trì hoãn <span class="math-expr" data-expr="\weights^-"></span> để tính toán mục tiêu định mức (target), tránh việc mục tiêu liên tục dịch chuyển gây phân kỳ giá trị.</li>
+                </ol>
+
+                <p>Công thức tính toán mục tiêu Bellman tối ưu (Q-target) của DQN:</p>
+                <div class="formula-container" data-expr="y_i = r_{i+1} + \gamma \max_{u} \hat{q}(\state_{i+1}, u, \weights^-)">
+                    <span class="math-expr" data-expr="y_i = r_{i+1} + \gamma \max_{u} \hat{q}(\state_{i+1}, u, \weights^-)"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+
+                <p>Hàm mất mát Mean-Squared Error (MSE) được tối ưu hóa qua gradient descent:</p>
+                <div class="formula-container" data-expr="\mathcal{L}(\weights) = \mathbb{E}_{\mathcal{D}_b} \left[ \left( y_i - \hat{q}(\state_i, u_i, \weights) \right)^2 \right]">
+                    <span class="math-expr" data-expr="\mathcal{L}(\weights) = \mathbb{E}_{\mathcal{D}_b} \left[ \left( y_i - \hat{q}(\state_i, u_i, \weights) \right)^2 \right]"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+
+                <!-- Interactive SVG Flow DQN -->
+                <div class="visualizer-card">
+                    <div class="visualizer-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        Sơ đồ tương tác luồng dữ liệu DQN
+                    </div>
+                    <div class="visualizer-svg-box">
+                        <svg width="600" height="180" viewBox="0 0 600 180">
+                            <!-- Environment Node -->
+                            <rect x="20" y="60" width="100" height="50" rx="6" fill="#15171f" stroke="#00f2fe" stroke-width="2"/>
+                            <text x="70" y="90" fill="#fff" font-size="12" font-family="'Outfit'" text-anchor="middle">Environment</text>
+                            
+                            <!-- Replay Buffer -->
+                            <rect x="200" y="60" width="100" height="50" rx="6" fill="#15171f" stroke="#00f5a0" stroke-width="2"/>
+                            <text x="250" y="90" fill="#fff" font-size="12" font-family="'Outfit'" text-anchor="middle">Replay Buffer</text>
+                            
+                            <!-- Online Q Net -->
+                            <rect x="380" y="20" width="100" height="50" rx="6" fill="#15171f" stroke="#7f00ff" stroke-width="2"/>
+                            <text x="430" y="50" fill="#fff" font-size="12" font-family="'Outfit'" text-anchor="middle">Online Q (w)</text>
+
+                            <!-- Target Q Net -->
+                            <rect x="380" y="100" width="100" height="50" rx="6" fill="#15171f" stroke="#ff9f43" stroke-width="2"/>
+                            <text x="430" y="130" fill="#fff" font-size="12" font-family="'Outfit'" text-anchor="middle">Target Q (w-)</text>
+                            
+                            <!-- Connections with flowing animations -->
+                            <path d="M 120 85 L 200 85" stroke="#00f2fe" stroke-width="2" class="svg-flow-path"/>
+                            <path d="M 300 85 L 340 85 L 340 45 L 380 45" stroke="#00f5a0" stroke-width="2" class="svg-flow-path"/>
+                            <path d="M 300 85 L 340 85 L 340 125 L 380 125" stroke="#00f5a0" stroke-width="2" class="svg-flow-path"/>
+                            
+                            <!-- Update path from Online to Target -->
+                            <path d="M 430 70 L 430 100" stroke="#ff3366" stroke-width="1.5" stroke-dasharray="4,4"/>
+                            <text x="440" y="88" fill="#ff3366" font-size="9" font-family="monospace">Copy kw</text>
+
+                            <circle cx="160" cy="85" r="5" fill="#00f2fe" class="svg-glow-circle"/>
+                            <circle cx="340" cy="45" r="5" fill="#00f5a0" class="svg-glow-circle"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: DUELING -->
+        <section id="view-dueling" class="section-view">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Dueling Double DQN</h3>
+                    <span class="card-badge">Advanced DQN</span>
+                </div>
+                <p>
+                    **Dueling DQN** nâng cấp cấu trúc mạng neural bằng cách tách rời việc ước lượng giá trị của trạng thái và lợi thế của từng hành động. Điều này giúp mô hình học nhanh hơn khi có nhiều hành động không làm thay đổi giá trị trạng thái tại thời điểm đó.
+                </p>
+                <p>
+                    Hai nhánh phẳng đầu ra bao gồm:
+                </p>
+                <ul>
+                    <li><strong>Nhánh Giá trị trạng thái (Value Stream) <span class="math-expr" data-expr="v(\state)"></span>:</strong> Trả về một giá trị vô hướng biểu thị mức độ tốt của trạng thái hiện tại.</li>
+                    <li><strong>Nhánh Lợi thế hành động (Advantage Stream) <span class="math-expr" data-expr="A(\state, \action)"></span>:</strong> Trả về một vector biểu thị lợi thế tương đối của từng hành động so với các hành động khác.</li>
+                </ul>
+
+                <p>Để giải quyết bài toán không thể xác định duy nhất (identifiability) khi kết hợp hai nhánh, ta trừ đi trung bình của Advantage:</p>
+                <div class="formula-container" data-expr="\qval(\state, \action) = v(\state) + \left( A(\state, \action) - \frac{1}{\vert \mathcal{U} \vert} \sum_{u'} A(\state, u') \right)">
+                    <span class="math-expr" data-expr="\qval(\state, \action) = v(\state) + \left( A(\state, \action) - \frac{1}{\vert \mathcal{U} \vert} \sum_{u'} A(\state, u') \right)"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+
+                <p>
+                    Bên cạnh đó, **Double DQN** loại bỏ sự thiên vị đánh giá quá cao (overestimation bias) của thuật toán Q-learning truyền thống bằng cách tách rời hành động tối ưu (chọn bởi mạng Online) và giá trị hành động đó (đánh giá bởi mạng Target):
+                </p>
+                <div class="formula-container" data-expr="y_i^{\text{Double}} = r_{i+1} + \gamma \hat{q}\left(\state_{i+1}, \operatorname{argmax}_{u} \hat{q}(\state_{i+1}, u, \weights), \weights^-\right)">
+                    <span class="math-expr" data-expr="y_i^{\text{Double}} = r_{i+1} + \gamma \hat{q}\left(\state_{i+1}, \operatorname{argmax}_{u} \hat{q}(\state_{i+1}, u, \weights), \weights^-\right)"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+
+                <!-- Interactive SVG Dueling Architecture -->
+                <div class="visualizer-card">
+                    <div class="visualizer-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18"/></svg>
+                        Kiến trúc mạng nhánh Dueling CNN
+                    </div>
+                    <div class="visualizer-svg-box">
+                        <svg width="600" height="180" viewBox="0 0 600 180">
+                            <!-- Input -->
+                            <rect x="10" y="65" width="80" height="40" rx="4" fill="#15171f" stroke="#00f2fe" stroke-width="1.5"/>
+                            <text x="50" y="89" fill="#fff" font-size="10" font-family="'Outfit'" text-anchor="middle">Input Stack</text>
+
+                            <!-- CNN Shared -->
+                            <rect x="120" y="55" width="100" height="60" rx="4" fill="#15171f" stroke="#7f00ff" stroke-width="1.5"/>
+                            <text x="170" y="90" fill="#fff" font-size="11" font-family="'Outfit'" text-anchor="middle">Nature CNN</text>
+
+                            <!-- Value Stream -->
+                            <rect x="270" y="20" width="110" height="40" rx="4" fill="#15171f" stroke="#00f5a0" stroke-width="1.5"/>
+                            <text x="325" y="44" fill="#fff" font-size="11" font-family="'Outfit'" text-anchor="middle">Value Stream V(s)</text>
+
+                            <!-- Advantage Stream -->
+                            <rect x="270" y="110" width="110" height="40" rx="4" fill="#15171f" stroke="#ff9f43" stroke-width="1.5"/>
+                            <text x="325" y="134" fill="#fff" font-size="11" font-family="'Outfit'" text-anchor="middle">Advantage A(s,a)</text>
+
+                            <!-- Combining Node -->
+                            <circle cx="460" cy="85" r="22" fill="#15171f" stroke="#ff3366" stroke-width="2"/>
+                            <text x="460" y="89" fill="#ff3366" font-size="14" font-family="monospace" text-anchor="middle">+</text>
+
+                            <!-- Q Output -->
+                            <rect x="520" y="65" width="70" height="40" rx="4" fill="#15171f" stroke="#00f2fe" stroke-width="1.5"/>
+                            <text x="555" y="89" fill="#fff" font-size="11" font-family="'Outfit'" text-anchor="middle">Q(s, a)</text>
+
+                            <!-- Paths -->
+                            <path d="M 90 85 L 120 85" stroke="#00f2fe" stroke-width="1.5"/>
+                            <path d="M 220 85 L 245 85 L 245 40 L 270 40" stroke="#7f00ff" stroke-width="1.5" class="svg-flow-path"/>
+                            <path d="M 220 85 L 245 85 L 245 130 L 270 130" stroke="#7f00ff" stroke-width="1.5" class="svg-flow-path"/>
+                            <path d="M 380 40 L 415 40 L 415 75 L 438 75" stroke="#00f5a0" stroke-width="1.5" class="svg-flow-path"/>
+                            <path d="M 380 130 L 415 130 L 415 95 L 438 95" stroke="#ff9f43" stroke-width="1.5" class="svg-flow-path"/>
+                            <path d="M 482 85 L 520 85" stroke="#ff3366" stroke-width="1.5"/>
+
+                            <circle cx="245" cy="40" r="4" fill="#7f00ff" class="svg-glow-circle"/>
+                            <circle cx="415" cy="75" r="4" fill="#00f5a0" class="svg-glow-circle"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 4: PPO -->
+        <section id="view-ppo" class="section-view">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Proximal Policy Optimization (PPO) Scratch</h3>
+                    <span class="card-badge">Policy-based Scratch</span>
+                </div>
+                <p>
+                    Khác với DQN ước lượng giá trị, **PPO** thuộc họ **Policy Gradient** - học trực tiếp chính sách hành động <span class="math-expr" data-expr="\policy(u \vert x, \boldsymbol{\theta})"></span>. Để tối ưu hóa và ngăn chặn các bước cập nhật chính sách quá lớn gây bất ổn định, PPO áp dụng cơ chế Clipped Surrogate Objective cực kỳ thông minh.
+                </p>
+                <p>
+                    Tỉ lệ phân bố xác suất chính sách mới so với chính sách cũ:
+                </p>
+                <div class="formula-container" data-expr="r_k(\boldsymbol{\theta}) = \frac{\pi(u_k \vert x_k, \boldsymbol{\theta})}{\pi(u_k \vert x_k, \boldsymbol{\theta}_{\text{old}})}">
+                    <span class="math-expr" data-expr="r_k(\boldsymbol{\theta}) = \frac{\pi(u_k \vert x_k, \boldsymbol{\theta})}{\pi(u_k \vert x_k, \boldsymbol{\theta}_{\text{old}})}"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+
+                <p>Mục tiêu tối ưu Clipped Surrogate Loss giới hạn cập nhật chính sách trong khoảng <span class="math-expr" data-expr="[1-\epsilon, 1+\epsilon]"></span>:</p>
+                <div class="formula-container" data-expr="L^{CLIP}(\boldsymbol{\theta}) = \hat{\mathbb{E}}_k \left[ \min\left(r_k(\boldsymbol{\theta})\hat{a}_k, \operatorname{clip}(r_k(\boldsymbol{\theta}), 1-\epsilon, 1+\epsilon)\hat{a}_k\right) \right]">
+                    <span class="math-expr" data-expr="L^{CLIP}(\boldsymbol{\theta}) = \hat{\mathbb{E}}_k \left[ \min\left(r_k(\boldsymbol{\theta})\hat{a}_k, \operatorname{clip}(r_k(\boldsymbol{\theta}), 1-\epsilon, 1+\epsilon)\hat{a}_k\right) \right]"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+
+                <p>
+                    Để tính toán lợi thế <span class="math-expr" data-expr="\hat{a}_k"></span> hiệu quả với phương sai thấp và độ lệch ít, PPO sử dụng bộ ước lượng lợi thế tổng quát **Generalized Advantage Estimation (GAE)**:
+                </p>
+                <div class="formula-container" data-expr="\delta_k = r_k + \gamma v(x_{k+1}) - v(x_k)">
+                    <span class="math-expr" data-expr="\delta_k = r_k + \gamma v(x_{k+1}) - v(x_k)"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+                <div class="formula-container" data-expr="\hat{a}_k^{(\gamma, \lambda)} = \sum_{i=0}^{\infty} (\gamma\lambda)^i \delta_{k+i}">
+                    <span class="math-expr" data-expr="\hat{a}_k^{(\gamma, \lambda)} = \sum_{i=0}^{\infty} (\gamma\lambda)^i \delta_{k+i}"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+                
+                <p>
+                    Hàm mục tiêu toàn phần của PPO kết hợp cùng hàm giảm lỗi trị số Critic (VF Loss) và Entropy Bonus tăng tính khám phá:
+                </p>
+                <div class="formula-container" data-expr="L^{PPO}(\boldsymbol{\theta}) = \hat{\mathbb{E}}_k \left[ L^{CLIP}(\boldsymbol{\theta}) - c_1 L^{VF}(\boldsymbol{\theta}) + c_2 S[\pi](\state_k) \right]">
+                    <span class="math-expr" data-expr="L^{PPO}(\boldsymbol{\theta}) = \hat{\mathbb{E}}_k \left[ L^{CLIP}(\boldsymbol{\theta}) - c_1 L^{VF}(\boldsymbol{\theta}) + c_2 S[\pi](\state_k) \right]"></span>
+                    <div class="formula-hint">Bấm để khám phá</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 5: SANDBOX -->
+        <section id="view-sandbox" class="section-view">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Hyperparameter Simulation Sandbox</h3>
+                    <span class="card-badge">Mô phỏng động</span>
+                </div>
+                
+                <div class="sandbox-grid">
+                    
+                    <!-- Left: Sliders Panel -->
+                    <div class="sandbox-controls">
+                        
+                        <!-- Slider 1: Alpha -->
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-title">Learning Rate (α)</span>
+                                <span class="slider-value" id="val-alpha">0.0003</span>
+                            </div>
+                            <input type="range" min="0.00005" max="0.005" step="0.00005" value="0.0003" class="slider-input" id="slider-alpha">
+                            <div class="slider-desc">Tốc độ cập nhật trọng số mạng. Quá lớn gây dao động mạnh/mất hội tụ; quá nhỏ làm học rất chậm.</div>
+                        </div>
+
+                        <!-- Slider 2: Gamma -->
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-title">Discount Factor (γ)</span>
+                                <span class="slider-value" id="val-gamma">0.99</span>
+                            </div>
+                            <input type="range" min="0.80" max="0.999" step="0.005" value="0.99" class="slider-input" id="slider-gamma">
+                            <div class="slider-desc">Tầm nhìn tương lai. 0.99 tương ứng việc quan tâm phần thưởng tích lũy dài hạn trong Atari Pong.</div>
+                        </div>
+
+                        <!-- Slider 3: GAE Lambda -->
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-title">GAE Parameter (λ)</span>
+                                <span class="slider-value" id="val-lambda">0.95</span>
+                            </div>
+                            <input type="range" min="0.50" max="1.0" step="0.01" value="0.95" class="slider-input" id="slider-lambda">
+                            <div class="slider-desc">Cân bằng Bias-Variance trong GAE. 0.95 là tối ưu phổ biến giúp giữ phương sai ổn định.</div>
+                        </div>
+
+                        <!-- Slider 4: Epsilon -->
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-title">PPO Clip Range (ε)</span>
+                                <span class="slider-value" id="val-epsilon">0.2</span>
+                            </div>
+                            <input type="range" min="0.05" max="0.4" step="0.01" value="0.2" class="slider-input" id="slider-epsilon">
+                            <div class="slider-desc">Giới hạn thay đổi chính sách PPO. Tránh việc chính sách thay đổi quá đột ngột phá hủy mạng.</div>
+                        </div>
+
+                        <!-- Slider 5: kw update -->
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-title">Target Update Frequency (kw)</span>
+                                <span class="slider-value" id="val-kw">1000</span>
+                            </div>
+                            <input type="range" min="100" max="5000" step="100" value="1000" class="slider-input" id="slider-kw">
+                            <div class="slider-desc">Tần suất đồng bộ từ mạng Online sang mạng Target trong DQN.</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Right: Dynamic Chart -->
+                    <div class="sandbox-chart-box">
+                        <h4 style="font-family: var(--font-title); font-size: 1rem; margin-bottom: 1rem; color: #fff; text-shadow: 0 0 10px rgba(0, 242, 254, 0.2)">Mô phỏng động tính năng hội tụ thuật toán</h4>
+                        <div style="position: relative; width: 100%; height: 320px;">
+                            <canvas id="sandbox-chart"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 6: QUIZ -->
+        <section id="view-quiz" class="section-view">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Exam Quiz Center</h3>
+                    <span class="card-badge">Tự đánh giá</span>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-header">
+                        <span class="quiz-progress" id="quiz-progress-text">Câu hỏi 1 / 6</span>
+                        <span class="quiz-score-badge" id="quiz-score-text">Điểm số: 0 / 0</span>
+                    </div>
+
+                    <div class="quiz-question-box" id="quiz-question-container">
+                        <!-- Loaded dynamically via JS -->
+                        <h3 id="quiz-question-title">Đang tải câu hỏi...</h3>
+                        <div class="quiz-options" id="quiz-options-container"></div>
+                    </div>
+
+                    <div class="quiz-action-bar">
+                        <button class="quiz-btn" id="quiz-submit-btn">Xác nhận đáp án</button>
+                    </div>
+
+                    <!-- Explanations Box -->
+                    <div class="quiz-explanation-box" id="quiz-explanation">
+                        <h4>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            Lời giải chi tiết từ chuyên gia:
+                        </h4>
+                        <p id="quiz-explanation-text">Nội dung giải thích chi tiết...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MATH EXPLORER TOOLTIP PANEL -->
+    <div class="explorer-panel" id="math-explorer">
+        <div class="explorer-header">
+            <span class="explorer-title">Math Explorer</span>
+            <button class="explorer-close" id="explorer-close-btn">Đóng [ESC]</button>
+        </div>
+        <div class="explorer-math" id="explorer-math-show"></div>
+        <div class="explorer-content" id="explorer-content-text">
+            <p>Chọn một công thức để khám phá chi tiết từng ký hiệu tham số.</p>
+        </div>
+    </div>
+
+    <!-- JS SCRIPTS FOR NAVIGATION & NOTATION ENGINE -->
+    <script>
+        // Data Store for Interactive Math Explanations
+        const formulaExplanations = {
+            "\\mathcal{M} = \\langle \\mathcal{X}, \\mathcal{U}, \\mathcal{P}, \\mathcal{R}, \\gamma \\rangle": {
+                title: "Bộ 5 thành phần MDP",
+                text: "Mô tả một tiến trình ra quyết định Markov hoàn chỉnh. Một khi biết trạng thái hiện tại, trạng thái tương lai độc lập thống kê với các trạng thái trong quá khứ (Tính chất Markov).",
+                symbols: [
+                    { sym: "\\mathcal{M}", name: "Mô hình MDP", desc: "Ký hiệu hệ thống mô hình hóa môi trường." },
+                    { sym: "\\mathcal{X}", name: "Không gian trạng thái", desc: "Tập hợp chứa toàn bộ các trạng thái có thể xảy ra trong hệ thống." },
+                    { sym: "\\mathcal{U}", name: "Không gian hành động", desc: "Tập hợp các hành động hợp lệ mà Agent có thể thực hiện." },
+                    { sym: "\\mathcal{P}", name: "Xác suất chuyển trạng thái", desc: "Độ đo khả năng chuyển trạng thái ngẫu nhiên dưới tác động của hành động." },
+                    { sym: "\\gamma", name: "Hệ số chiết khấu", desc: "Tham số kiểm soát độ 'nhìn xa trông rộng' của Agent. Thường chọn từ 0.95 đến 0.99." }
+                ]
+            },
+            "V^{\\policy}(\\state) = \\mathbb{E}_{\\policy} \\left[ \\sum_{k=0}^{\\infty} \\gamma^k \\mathcal{R}_k \\;\\middle\\vert\\; \\state_0 = \\state \\right]": {
+                title: "Hàm giá trị trạng thái (State-Value Function)",
+                text: "Biểu diễn kỳ vọng toán học của tổng phần thưởng tích lũy nhận được khi bắt đầu tại một trạng thái cụ thể và tuân theo chiến sách đã định.",
+                symbols: [
+                    { sym: "V^{\\policy}", name: "Giá trị trạng thái", desc: "Hàm đo lường mức độ 'tốt' của một trạng thái khi đứng ở đó." },
+                    { sym: "\\mathbb{E}_{\\policy}", name: "Kỳ vọng toán học", desc: "Kỳ vọng lấy theo xác suất chuyển trạng thái ngẫu nhiên và chính sách hành động." },
+                    { sym: "\\gamma^k", name: "Độ trễ chiết khấu", desc: "Phần thưởng nhận được ở bước thứ k trong tương lai sẽ bị giảm giá trị đi lũy thừa k lần." }
+                ]
+            },
+            "\\qval^{\\policy}(\\state, \\action) = \\mathbb{E} \\left[ r + \\gamma \\qval^{\\policy}(\\stateNext, \\actionNext) \\;\\middle\\vert\\; \\state_0 = \\state, \\action_0 = \\action \\right]": {
+                title: "Phương trình Bellman đệ quy cho Q-value",
+                text: "Nền tảng của thuật toán Q-learning. Thể hiện mối liên hệ chặt chẽ giữa giá trị của cặp trạng thái-hành động hiện tại với giá trị mong đợi của trạng thái tiếp theo.",
+                symbols: [
+                    { sym: "\\qval^{\\policy}", name: "Hàm giá trị hành động (Q-value)", desc: "Độ tốt của việc thực hiện một hành động cụ thể tại một trạng thái." },
+                    { sym: "r", name: "Phần thưởng tức thời", desc: "Reward nhận về ngay ở bước chuyển đổi đầu tiên." },
+                    { sym: "\\stateNext, \\actionNext", name: "Trạng thái & hành động kế tiếp", desc: "Cặp trạng thái và hành động ở timestep tiếp theo." }
+                ]
+            },
+            "y_i = r_{i+1} + \\gamma \\max_{u} \\hat{q}(\\state_{i+1}, u, \\weights^-)": {
+                title: "Mục tiêu tối ưu Bellman (DQN Target)",
+                text: "Giá trị đích (Target) dùng làm mốc quy chiếu để tính sai số cho mạng chính. Q-target được tính dựa trên mạng đích có trọng số độc lập và được khóa cứng tạm thời.",
+                symbols: [
+                    { sym: "y_i", name: "Q-target", desc: "Nhãn huấn luyện (Label) cho mẫu dữ liệu thứ i." },
+                    { sym: "\\max_{u} \\hat{q}", name: "Cực đại hóa giá trị tương lai", desc: "Agent tin rằng ở trạng thái tiếp theo nó sẽ luôn chọn hành động tốt nhất." },
+                    { sym: "\\weights^-", name: "Trọng số mạng đích (Target weights)", desc: "Trọng số mạng đích được cập nhật trễ để giữ nhãn huấn luyện ổn định." }
+                ]
+            },
+            "\\mathcal{L}(\\weights) = \\mathbb{E}_{\\mathcal{D}_b} \\left[ \\left( y_i - \\hat{q}(\\state_i, u_i, \\weights) \\right)^2 \\right]": {
+                title: "Hàm mất mát DQN Loss",
+                text: "Sai số bình phương trung bình (MSE) giữa giá trị dự đoán từ mạng chính và nhãn đích Q-target thu được từ mạng đích.",
+                symbols: [
+                    { sym: "\\mathcal{L}(\\weights)", name: "Hàm mất mát Loss function", desc: "Chỉ số đánh giá độ lệch của mô hình dự đoán. Mục tiêu là tối thiểu hóa giá trị này." },
+                    { sym: "\\hat{q}(\\state_i, u_i, \\weights)", name: "Q-value mạng chính", desc: "Giá trị dự đoán hiện tại của mạng chính với tham số trọng số đang tối ưu." },
+                    { sym: "\\mathcal{D}_b", name: "Mini-batch", desc: "Batch dữ liệu lấy mẫu ngẫu nhiên từ bộ đệm Replay Buffer." }
+                ]
+            },
+            "\\qval(\\state, \\action) = v(\\state) + \\left( A(\\state, \\action) - \\frac{1}{\\vert \\mathcal{U} \\vert} \\sum_{u'} A(\\state, u') \\right)": {
+                title: "Phép toán kết hợp Dueling Q-value",
+                text: "Giá trị Q được tách thành Giá trị trạng thái V và Lợi thế hành động A. Việc trừ đi trung bình của A giải quyết bài toán không định danh được duy nhất hàm V và A.",
+                symbols: [
+                    { sym: "v(\\state)", name: "Giá trị trạng thái V", desc: "Hàm vô hướng đo lường độ tốt của trạng thái hiện thời." },
+                    { sym: "A(\\state, \\action)", name: "Hàm lợi thế hành động Advantage", desc: "Ước lượng độ ưu việt của hành động so với trung bình các hành động khác." },
+                    { sym: "\\frac{1}{\\vert \\mathcal{U} \\vert} \\sum A", name: "Trừ trung bình Advantage", desc: "Ràng buộc kỹ thuật bắt buộc để ổn định học tập, giữ cho trung bình lợi thế luôn bằng 0." }
+                ]
+            },
+            "y_i^{\\text{Double}} = r_{i+1} + \\gamma \\hat{q}\\left(\\state_{i+1}, \\operatorname{argmax}_{u} \\hat{q}(\\state_{i+1}, u, \\weights), \\weights^-\\right)": {
+                title: "Double DQN Target",
+                text: "Sử dụng mạng online (trọng số w) để chọn hành động tốt nhất và mạng target (trọng số w-) để đánh giá giá trị hành động đó. Loại bỏ hoàn toàn sự thiên lệch đánh giá cao.",
+                symbols: [
+                    { sym: "\\operatorname{argmax}_{u} \\hat{q}", name: "Lựa chọn hành động bằng mạng Online", desc: "Chọn hành động tối ưu hóa Q-value bằng trọng số mạng hiện thời w." },
+                    { sym: "\\weights^-", name: "Đánh giá bằng mạng Target", desc: "Tính toán giá trị Q-value đích thực bằng trọng số mạng target w- trì hoãn." }
+                ]
+            },
+            "r_k(\\boldsymbol{\\theta}) = \\frac{\\pi(u_k \\vert x_k, \\boldsymbol{\\theta})}{\\pi(u_k \\vert x_k, \\boldsymbol{\\theta}_{\\text{old}})}": {
+                title: "Tỉ lệ xác suất chính sách (PPO Probability Ratio)",
+                text: "Tỉ số đo lường mức độ thay đổi giữa chính sách mới đang huấn luyện và chính sách cũ lưu trữ từ đợt rollout.",
+                symbols: [
+                    { sym: "r_k(\\boldsymbol{\\theta})", name: "Probability Ratio", desc: "Nếu tỉ số bằng 1, hai chính sách hoàn toàn trùng khớp. Nếu lớn hơn 1, chính sách mới thích hành động này hơn." },
+                    { sym: "\\pi(u_k \\vert x_k, \\boldsymbol{\\theta})", name: "Xác suất hành động mới", desc: "Xác suất chọn hành động mới dựa trên tham số trọng số hiện tại." }
+                ]
+            },
+            "L^{CLIP}(\\boldsymbol{\\theta}) = \\hat{\\mathbb{E}}_k \\left[ \\min\\left(r_k(\boldsymbol{\\theta})\\hat{a}_k, \\operatorname{clip}(r_k(\\boldsymbol{\\theta}), 1-\\epsilon, 1+\\epsilon)\\hat{a}_k\\right) \\right]": {
+                title: "Hàm mục tiêu PPO Clipped Loss",
+                text: "Hàm mục tiêu cốt lõi của PPO. Clip giá trị tỉ số r_k(w) trong khoảng [1-e, 1+e] để ngăn chính sách mới lệch quá xa chính sách cũ, tạo độ tin cậy tuyệt đối.",
+                symbols: [
+                    { sym: "\\operatorname{clip}(r_k, 1-\\epsilon, 1+\\epsilon)", name: "Hàm clip giới hạn", desc: "Triệt tiêu động lực tăng/giảm xác suất hành động quá mức cho phép." },
+                    { sym: "\\hat{a}_k", name: "Ước lượng lợi thế Advantage", desc: "Độ ưu việt thu được từ GAE, đại diện cho việc hành động tốt hay xấu." }
+                ]
+            },
+            "\\delta_k = r_k + \\gamma v(x_{k+1}) - v(x_k)": {
+                title: "Sai số Temporal Difference (TD-error)",
+                text: "Sai số dự đoán giá trị 1-bước. Là viên gạch nền móng để xây dựng bộ ước lượng lợi thế GAE.",
+                symbols: [
+                    { sym: "\\delta_k", name: "TD Error", desc: "Chênh lệch giữa phần thưởng thực tế nhận được cộng giá trị tương lai chiết khấu so với dự đoán ban đầu." },
+                    { sym: "v(x_k)", name: "Giá trị trạng thái dự đoán", desc: "Ước lượng giá trị của trạng thái hiện thời bằng mạng Critic." }
+                ]
+            },
+            "\\hat{a}_k^{(\\gamma, \\lambda)} = \\sum_{i=0}^{\\infty} (\\gamma\\lambda)^i \\delta_{k+i}": {
+                title: "Bộ ước lượng GAE",
+                text: "Tổng chiết khấu có trọng số mũ của các sai số TD. Lambda giúp kiểm soát hoàn hảo sự đánh đổi Bias-Variance (Độ lệch và Phương sai).",
+                symbols: [
+                    { sym: "\\lambda", name: "Tham số GAE Lambda", desc: "Hệ số chiết khấu bổ sung. L=0 biến GAE thành 1-step TD (bias cao, variance thấp). L=1 biến GAE thành Monte Carlo (bias thấp, variance cao)." }
+                ]
+            },
+            "L^{PPO}(\\boldsymbol{\\theta}) = \\hat{\\mathbb{E}}_k \\left[ L^{CLIP}(\\boldsymbol{\\theta}) - c_1 L^{VF}(\\boldsymbol{\\theta}) + c_2 S[\\pi](\\state_k) \\right]": {
+                title: "Hàm mục tiêu PPO toàn phần",
+                text: "Kết hợp giữa tối ưu hóa chính sách chính xác, giảm thiểu sai số dự đoán giá trị của Critic (VF loss) và cộng thêm Entropy bonus khuyến khích Agent tích cực khám phá môi trường.",
+                symbols: [
+                    { sym: "L^{VF}", name: "Value Function Loss", desc: "Lỗi bình phương trung bình của mạng Critic cần được tối thiểu hóa." },
+                    { sym: "S[\\pi]", name: "Entropy chính sách", desc: "Độ đo sự hỗn loạn của chính sách. Entropy cao biểu thị Agent phân bổ đều xác suất hành động, tăng tính khám phá." }
+                ]
+            }
+        };
+
+        // Hash-based Routing Engine (SPA style)
+        function navigateToHash() {
+            let hash = window.location.hash;
+            if (!hash) {
+                hash = '#mdp'; // Default tab
+            }
+
+            // Find the anchor matching the hash
+            const activeAnchor = document.querySelector(`.nav-menu a[href="${hash}"]`);
+            if (!activeAnchor) return;
+
+            const activeLi = activeAnchor.parentNode;
+            const targetView = activeLi.getAttribute('data-target');
+            const targetSection = document.getElementById(targetView);
+
+            if (!targetSection) return;
+
+            // Update active states in Sidebar
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            activeLi.classList.add('active');
+
+            // Update active states in Content Views
+            document.querySelectorAll('.section-view').forEach(v => v.classList.remove('active-view'));
+            targetSection.classList.add('active-view');
+
+            // Update Top Bar Page Title Text
+            const sectionName = activeAnchor.innerText;
+            const cleanTitle = sectionName.replace(/^\d+\.\s+/, '');
+            document.getElementById('page-title-text').innerText = cleanTitle;
+
+            // Trigger chart update if entering sandbox
+            if (targetView === 'view-sandbox') {
+                setTimeout(initChart, 100);
+            }
+            
+            // Re-render math just in case to ensure hidden equations are rendered correctly when shown
+            renderMath();
+        }
+
+        // Listen for hash changes
+        window.addEventListener('hashchange', navigateToHash);
+
+        // Bind click events on menu items to update hash smoothly
+        document.querySelectorAll('.nav-menu a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                // Let the hashchange event handle the navigation, just update the hash
+                const href = this.getAttribute('href');
+                window.location.hash = href;
+            });
+        });
+
+        // Notation Switcher State
+        let currentNotation = 'vku'; // 'vku' or 'intl'
+        const toggleInput = document.getElementById('notation-toggle');
+        const labelVku = document.getElementById('label-vku');
+        const labelIntl = document.getElementById('label-intl');
+
+        // Dynamic KaTeX Macros Generator
+        function getMacros() {
+            if (currentNotation === 'vku') {
+                return {
+                    "\\state": "x",
+                    "\\stateNext": "x_{k+1}",
+                    "\\action": "u",
+                    "\\actionNext": "u_{k+1}",
+                    "\\qval": "q",
+                    "\\transition": "\\mathcal{P}",
+                    "\\policy": "\\pi",
+                    "\\reward": "\\mathcal{R}",
+                    "\\weights": "\\boldsymbol{w}"
+                };
+            } else {
+                return {
+                    "\\state": "s",
+                    "\\stateNext": "s_{t+1}",
+                    "\\action": "a",
+                    "\\actionNext": "a_{t+1}",
+                    "\\qval": "Q",
+                    "\\transition": "\\mathcal{T}",
+                    "\\policy": "\\pi",
+                    "\\reward": "\\mathcal{R}",
+                    "\\weights": "\\boldsymbol{\\theta}"
+                };
+            }
+        }
+
+        // Render all math elements on page
+        function renderMath() {
+            const macros = getMacros();
+            document.querySelectorAll('.math-expr').forEach(el => {
+                const expr = el.getAttribute('data-expr');
+                const isDisplay = el.parentNode.classList.contains('formula-container');
+                try {
+                    katex.render(expr, el, {
+                        throwOnError: false,
+                        displayMode: isDisplay,
+                        macros: macros
+                    });
+                } catch (err) {
+                    el.innerHTML = `<span style="color:red">${expr}</span>`;
+                }
+            });
+        }
+
+        // Toggle Switcher Event
+        toggleInput.addEventListener('change', function() {
+            if (this.checked) {
+                currentNotation = 'intl';
+                labelIntl.classList.add('active');
+                labelVku.classList.remove('active');
+            } else {
+                currentNotation = 'vku';
+                labelVku.classList.add('active');
+                labelIntl.classList.remove('active');
+            }
+            renderMath();
+            
+            // If explorer panel is open, update its formula too
+            const explorer = document.getElementById('math-explorer');
+            if (explorer.style.display === 'block') {
+                const currentExpr = explorer.getAttribute('data-active-expr');
+                if (currentExpr) {
+                    renderExplorerFormula(currentExpr);
+                }
+            }
+            
+            // Update active quiz question texts/explanations
+            renderQuizQuestion();
+        });
+
+        // Initialize Label Highlight
+        labelVku.classList.add('active');
+
+        // Interactive Explorer Tooltip Logic
+        const explorerPanel = document.getElementById('math-explorer');
+        const explorerClose = document.getElementById('explorer-close-btn');
+        const explorerMathShow = document.getElementById('explorer-math-show');
+        const explorerContentText = document.getElementById('explorer-content-text');
+
+        function renderExplorerFormula(expr) {
+            const macros = getMacros();
+            katex.render(expr, explorerMathShow, {
+                throwOnError: false,
+                displayMode: true,
+                macros: macros
+            });
+        }
+
+        function openExplorer(expr) {
+            const explanation = formulaExplanations[expr];
+            if (!explanation) return;
+
+            explorerPanel.setAttribute('data-active-expr', expr);
+            explorerPanel.style.display = 'block';
+            
+            // Render the main formula inside explorer
+            renderExplorerFormula(expr);
+
+            // Generate content
+            let contentHtml = `<p><strong>${explanation.title}</strong></p>`;
+            contentHtml += `<p>${explanation.text}</p>`;
+            contentHtml += `<div style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.8rem;">`;
+            contentHtml += `<p style="font-size: 0.8rem; color: var(--neon-emerald); font-family: var(--font-code); text-transform:uppercase;">Thành phần toán học:</p>`;
+            contentHtml += `<ul style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem;">`;
+
+            const macros = getMacros();
+            explanation.symbols.forEach(symObj => {
+                const tempSpan = document.createElement('span');
+                katex.render(symObj.sym, tempSpan, {
+                    throwOnError: false,
+                    macros: macros
+                });
+
+                contentHtml += `
+                    <li style="font-size: 0.8rem; display: flex; gap: 0.8rem; background: rgba(255,255,255,0.01); border-radius: 4px; padding: 0.4rem;">
+                        <span style="color: var(--neon-cyan); font-weight: bold; min-width: 40px;">${tempSpan.innerHTML}</span>
+                        <span style="flex: 1;"><strong>${symObj.name}:</strong> ${symObj.desc}</span>
+                    </li>
+                `;
+            });
+            contentHtml += `</ul></div>`;
+
+            explorerContentText.innerHTML = contentHtml;
+        }
+
+        // Add Click Events to Formula Containers
+        document.querySelectorAll('.formula-container').forEach(container => {
+            container.addEventListener('click', function() {
+                const expr = this.getAttribute('data-expr');
+                openExplorer(expr);
+            });
+        });
+
+        // Close Explorer Panel
+        explorerClose.addEventListener('click', () => {
+            explorerPanel.style.display = 'none';
+            explorerPanel.removeAttribute('data-active-expr');
+        });
+
+        // Keyboard ESC Close handling
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                explorerPanel.style.display = 'none';
+                explorerPanel.removeAttribute('data-active-expr');
+            }
+        });
+
+        // ==========================================
+        // HYPERPARAMETER SANDBOX SIMULATOR & CHART
+        // ==========================================
+        let sandboxChartObj = null;
+
+        function initChart() {
+            const ctx = document.getElementById('sandbox-chart').getContext('2d');
+            if (sandboxChartObj) {
+                sandboxChartObj.destroy();
+            }
+
+            const dataPoints = updateSimulationData();
+
+            sandboxChartObj = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 30}, (_, i) => `Epoch ${i+1}`),
+                    datasets: [
+                        {
+                            label: 'Convergence (Episode Rewards)',
+                            data: dataPoints.rewards,
+                            borderColor: '#00f2fe',
+                            borderWidth: 2,
+                            backgroundColor: 'rgba(0, 242, 254, 0.04)',
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 1,
+                            shadowColor: '#00f2fe',
+                            shadowBlur: 10
+                        },
+                        {
+                            label: 'Policy Stability (Variance)',
+                            data: dataPoints.stability,
+                            borderColor: '#7f00ff',
+                            borderWidth: 2,
+                            backgroundColor: 'rgba(127, 0, 255, 0.04)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 1,
+                            shadowColor: '#7f00ff',
+                            shadowBlur: 10
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.02)' },
+                            ticks: { color: '#94a3b8', font: { family: 'Fira Code', size: 9 } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.02)' },
+                            ticks: { color: '#94a3b8', font: { family: 'Fira Code', size: 9 } }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#e2e8f0', font: { family: 'Outfit', size: 11, weight: 'bold' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateSimulationData() {
+            const alpha = parseFloat(document.getElementById('slider-alpha').value);
+            const gamma = parseFloat(document.getElementById('slider-gamma').value);
+            const lambda = parseFloat(document.getElementById('slider-lambda').value);
+            const epsilon = parseFloat(document.getElementById('slider-epsilon').value);
+            const kw = parseInt(document.getElementById('slider-kw').value);
+
+            let rewards = [];
+            let stability = [];
+
+            // Real-time mathematics simulator for visual plotting
+            for (let i = 1; i <= 30; i++) {
+                // Convergence curve simulation
+                let rewardFactor = 0;
+                if (alpha > 0.002) {
+                    // Learning rate too high causes divergence
+                    rewardFactor = 15 - i * (alpha * 60) + Math.sin(i * 1.5) * 4;
+                } else if (alpha < 0.0001) {
+                    // Learning rate too low causes sluggish learning
+                    rewardFactor = i * (alpha * 1200) + Math.cos(i * 0.2) * 1.5;
+                } else {
+                    // Sweet spot learning
+                    rewardFactor = 21 * (1 - Math.exp(-i * (alpha * 400))) - Math.exp(-i * (gamma * 0.8)) * 5;
+                }
+
+                // stability curve simulation
+                let stabilityFactor = 0;
+                if (epsilon > 0.3) {
+                    // Too high PPO clip means large unstable step updates
+                    stabilityFactor = 40 - Math.sin(i * 0.8) * 15 - (alpha * 3000);
+                } else if (lambda > 0.98) {
+                    // GAE Lambda near 1 increases variance
+                    stabilityFactor = 70 - (i * 0.5) - Math.random() * 20;
+                } else {
+                    // Stable clipped update
+                    stabilityFactor = 95 - Math.exp(-i * 0.15) * 40 - (alpha * 8000) - (1 - lambda) * 15;
+                }
+
+                // Boundaries capping
+                rewards.push(Math.max(-21, Math.min(21, rewardFactor)));
+                stability.push(Math.max(0, Math.min(100, stabilityFactor)));
+            }
+
+            return { rewards, stability };
+        }
+
+        // Add sandbox sliders input listeners
+        const sliders = ['alpha', 'gamma', 'lambda', 'epsilon', 'kw'];
+        sliders.forEach(s => {
+            const input = document.getElementById(`slider-${s}`);
+            const display = document.getElementById(`val-${s}`);
+            input.addEventListener('input', function() {
+                display.innerText = this.value;
+                if (sandboxChartObj) {
+                    const freshData = updateSimulationData();
+                    sandboxChartObj.data.datasets[0].data = freshData.rewards;
+                    sandboxChartObj.data.datasets[1].data = freshData.stability;
+                    sandboxChartObj.update('none'); // Silent update
+                }
+            });
+        });
+
+        // ==========================================
+        // DYNAMIC QUIZ SYSTEM (VKU Academic Pool)
+        // ==========================================
+        const quizQuestions = [
+            {
+                q: "Trong Dueling DQN, tại sao chúng ta bắt buộc phải trừ đi trung bình của các Advantage thay vì lấy Max của Advantage?",
+                options: [
+                    "A. Để giảm số lượng tham số mạng neural, giúp tính toán Loss nhanh hơn.",
+                    "B. Ràng buộc toán học giúp giải quyết bài toán không thể xác định duy nhất (identifiability problem) của hai hàm V và A.",
+                    "C. Để mạng luôn thiên vị chọn hành động đứng yên trong game Pong.",
+                    "D. Để triệt tiêu hoàn toàn độ chệch phương sai của mạng Target."
+                ],
+                correct: 1,
+                explanation: "Để kết hợp độc lập $v(\\state)$ và $A(\\state, \\action)$ tạo ra $\\qval(\\state, \\action)$, ta cần một ràng buộc toán học duy nhất. Nếu không trừ trung bình $\\frac{1}{\\vert \\mathcal{U} \\vert}\\sum A$, ta có thể cộng một hằng số vào V và trừ đi chính hằng số đó ở A mà hàm Q vẫn không đổi (identifiability problem). Trừ trung bình ép cho trung bình lợi thế hành động luôn bằng 0."
+            },
+            {
+                q: "Trong thuật toán Double DQN, mạng nào được sử dụng để CHỌN hành động tối ưu tiếp theo và mạng nào dùng để ĐÁNH GIÁ trị số hành động đó?",
+                options: [
+                    "A. Chọn hành động bằng mạng Target, đánh giá bằng mạng Online.",
+                    "B. Chọn hành động bằng mạng Online, đánh giá bằng mạng Online.",
+                    "C. Chọn hành động bằng mạng Online, đánh giá bằng mạng Target.",
+                    "D. Cả hai mạng Online và Target đồng thời tham gia chọn và đánh giá ngẫu nhiên."
+                ],
+                correct: 2,
+                explanation: "Double DQN tách biệt hoàn toàn hai nhiệm vụ: Mạng Online (w) chọn hành động tốt nhất bằng phép toán $\\operatorname{argmax}_u \\hat{q}(\\state_{i+1}, u, \\weights)$, còn mạng Target (w-) đóng vai trò đánh giá khách quan giá trị Q-value của hành động đó: $\\hat{q}(\\state_{i+1}, \\action^*, \\weights^-)$. Điều này ngăn chặn triệt để hiện tượng overestimation bias."
+            },
+            {
+                q: "Mục đích cốt lõi của việc cài đặt hàm Clipped Surrogate Loss trong thuật toán PPO là gì?",
+                options: [
+                    "A. Loại bỏ hoàn toàn bộ đệm Replay Buffer để chuyển sang huấn luyện Off-policy.",
+                    "B. Giới hạn sự thay đổi của chính sách mới so với chính sách cũ trong một khoảng tin cậy [1-ε, 1+ε] để ổn định hóa quá trình hội tụ.",
+                    "C. Tăng tốc độ tính toán lan truyền ngược (backward pass) trên CPU.",
+                    "D. Ép cho phân bố chính sách luôn là phân bố chuẩn Gaussian đồng đều."
+                ],
+                correct: 1,
+                explanation: "Vì PPO là thuật toán học On-policy, việc cập nhật chính sách quá lớn có thể khiến phân phối dữ liệu mới lệch xa phân phối cũ, phá hủy hoàn toàn quá trình học. Hàm Clip của PPO đóng vai trò giữ tỉ lệ xác suất $r_k(\\boldsymbol{\\theta})$ nằm sát mức 1, tránh các bước đi quá xa vùng tin cậy (Trust Region)."
+            },
+            {
+                q: "Tham số GAE \\lambda có tác động trực tiếp như thế nào đến sự cân bằng Bias-Variance (Độ lệch - Phương sai) trong Reinforcement Learning?",
+                options: [
+                    "A. \\lambda càng nhỏ (tiến về 0) thì Variance càng lớn, Bias càng nhỏ.",
+                    "B. \\lambda càng lớn (tiến về 1) thì Bias càng lớn, Variance càng nhỏ.",
+                    "C. \\lambda càng nhỏ (tiến về 0) thì Bias càng lớn (thiên về 1-step TD), nhưng Variance cực thấp.",
+                    "D. \\lambda không có bất kỳ ảnh hưởng nào tới độ lệch hay phương sai."
+                ],
+                correct: 2,
+                explanation: "Khi $\\lambda = 0$, ước lượng GAE trở thành sai số TD 1-bước có độ chệch lớn (bias cao do bootstrap) nhưng phương sai rất thấp. Khi $\\lambda = 1$, GAE trở thành ước lượng Monte Carlo thực tế đầy đủ không chệch (bias thấp) nhưng phương sai cực kỳ lớn do tích lũy nhiễu từ nhiều bước ngẫu nhiên tương lai."
+            },
+            {
+                q: "Trong quá trình xây dựng Replay Buffer từ scratch cho Pong, việc lưu trữ hình ảnh dưới dạng kiểu dữ liệu np.uint8 thay vì float32 mang lại lợi ích gì?",
+                options: [
+                    "A. Giúp tăng tốc độ xử lý gradient trực tiếp trên CPU.",
+                    "B. Tiết kiệm gấp 4 lần dung lượng RAM lưu trữ (~2.8GB thay vì ~11.2GB cho 100,000 steps), giúp huấn luyện không bị tràn bộ nhớ hệ thống.",
+                    "C. Tự động chuẩn hóa các giá trị pixel về dải [0.0, 1.0] mà không cần chia cho 255.",
+                    "D. Phá vỡ tính chất Markov của môi trường trò chơi Atari."
+                ],
+                correct: 1,
+                explanation: "Kiểu dữ liệu `np.uint8` chỉ chiếm 1 byte mỗi phần tử thay vì 4 bytes như `float32`. Do ảnh xám lưu trữ pixel nguyên từ 0 đến 255, việc lưu `uint8` tiết kiệm 75% bộ nhớ hệ thống. Khi đưa mini-batch vào GPU huấn luyện, ta mới ép kiểu sang `float32` và chia cho 255.0 để chuẩn hóa trong một chu kỳ xung nhịp GPU duy nhất."
+            },
+            {
+                q: "Việc sử dụng wrapper Frame Stacker (chồng 4 khung ảnh liên tiếp) làm quan sát đầu vào có mục đích khoa học gì?",
+                options: [
+                    "A. Chỉ nhằm tăng độ phân giải hình ảnh hiển thị cho người chơi.",
+                    "B. Chuyển đổi bài toán quan sát một phần (POMDP) thành tiến trình quyết định Markov đầy đủ (MDP) bằng cách cung cấp thông tin động học (vận tốc và hướng di chuyển của bóng).",
+                    "C. Giảm số lượng kênh tích chập đầu vào của mạng Nature CNN.",
+                    "D. Tự động loại bỏ các nhiễu tần số cao của màn hình Atari Pong."
+                ],
+                correct: 1,
+                explanation: "Một khung ảnh tĩnh đơn lẻ chỉ cung cấp vị trí của bóng, không thể cho biết bóng đang bay sang trái hay sang phải, vận tốc nhanh hay chậm (mất tính chất Markov - trạng thái hiện tại chứa đủ thông tin lịch sử). Chồng 4 khung ảnh liên tiếp bổ sung thông tin lịch sử động học ngay trong quan sát hiện thời, khôi phục tính chất Markov hoàn hảo cho hệ thống."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let selectedOptionIndex = null;
+        let correctAnswersCount = 0;
+        let questionsAnsweredCount = 0;
+
+        function renderQuizQuestion() {
+            const questionData = quizQuestions[currentQuestionIndex];
+            
+            // Progress Update
+            document.getElementById('quiz-progress-text').innerText = `Câu hỏi ${currentQuestionIndex + 1} / ${quizQuestions.length}`;
+            document.getElementById('quiz-score-text').innerText = `Điểm số: ${correctAnswersCount} / ${questionsAnsweredCount}`;
+            
+            // Render Question Title
+            document.getElementById('quiz-question-title').innerText = questionData.q;
+            
+            // Render Options
+            const container = document.getElementById('quiz-options-container');
+            container.innerHTML = '';
+            
+            questionData.options.forEach((opt, idx) => {
+                const letter = String.fromCharCode(65 + idx); // A, B, C, D
+                const optEl = document.createElement('div');
+                optEl.className = 'quiz-option';
+                optEl.setAttribute('data-index', idx);
+                
+                optEl.innerHTML = `
+                    <span class="quiz-opt-letter">${letter}</span>
+                    <span>${opt}</span>
+                `;
+                
+                optEl.addEventListener('click', function() {
+                    if (selectedOptionIndex !== null) return; // Answered already
+                    
+                    document.querySelectorAll('.quiz-option').forEach(el => el.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedOptionIndex = idx;
+                });
+                
+                container.appendChild(optEl);
+            });
+
+            // Reset UI state
+            document.getElementById('quiz-explanation').style.display = 'none';
+            document.getElementById('quiz-submit-btn').innerText = "Xác nhận đáp án";
+        }
+
+        // Submit Button Action
+        document.getElementById('quiz-submit-btn').addEventListener('click', function() {
+            const questionData = quizQuestions[currentQuestionIndex];
+
+            // If already answered, next question cycle
+            if (this.innerText === "Câu tiếp theo" || this.innerText === "Hoàn tất bài ôn tập") {
+                if (currentQuestionIndex < quizQuestions.length - 1) {
+                    currentQuestionIndex++;
+                    selectedOptionIndex = null;
+                    renderQuizQuestion();
+                } else {
+                    // Quiz End
+                    alert(`Chúc mừng bạn đã hoàn thành bài ôn tập lý thuyết Pong RL! Điểm số đạt được: ${correctAnswersCount} / ${quizQuestions.length}`);
+                    currentQuestionIndex = 0;
+                    selectedOptionIndex = null;
+                    correctAnswersCount = 0;
+                    questionsAnsweredCount = 0;
+                    renderQuizQuestion();
+                }
+                return;
+            }
+
+            if (selectedOptionIndex === null) {
+                alert("Vui lòng chọn một đáp án trước khi nhấn xác nhận!");
+                return;
+            }
+
+            questionsAnsweredCount++;
+
+            // Highlight Correct / Incorrect Options
+            const optionsElements = document.querySelectorAll('.quiz-option');
+            optionsElements.forEach((el, idx) => {
+                const optIdx = parseInt(el.getAttribute('data-index'));
+                if (optIdx === questionData.correct) {
+                    el.classList.add('correct');
+                } else if (optIdx === selectedOptionIndex) {
+                    el.classList.add('incorrect');
+                }
+            });
+
+            // Update Score
+            if (selectedOptionIndex === questionData.correct) {
+                correctAnswersCount++;
+            }
+
+            document.getElementById('quiz-score-text').innerText = `Điểm số: ${correctAnswersCount} / ${questionsAnsweredCount}`;
+
+            // Render rich math explanation
+            const explanationBox = document.getElementById('quiz-explanation');
+            const explanationText = document.getElementById('quiz-explanation-text');
+            explanationText.innerHTML = questionData.explanation;
+            
+            // Trigger KaTeX dynamic translation inside explanation
+            const macros = getMacros();
+            explanationBox.style.display = 'block';
+            explanationBox.querySelectorAll('.math-expr, span').forEach(el => {
+                // If it contains math expressions or elements needing KaTeX rendering
+            });
+
+            // Render equations inside explanation manually
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = questionData.explanation;
+            
+            // Render Math equations in explanation
+            explanationText.innerHTML = questionData.explanation.replace(/\$([^\$]+)\$/g, (match, formula) => {
+                const span = document.createElement('span');
+                try {
+                    katex.render(formula, span, { throwOnError: false, macros: macros });
+                    return span.innerHTML;
+                } catch (err) {
+                    return match;
+                }
+            });
+
+            // Change Submit Button text
+            if (currentQuestionIndex < quizQuestions.length - 1) {
+                this.innerText = "Câu tiếp theo";
+            } else {
+                this.innerText = "Hoàn tất bài ôn tập";
+            }
+        });
+
+        // Initialize SPA Router, KaTeX, and Quiz on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            navigateToHash();
+            renderQuizQuestion();
+        });
+    </script>
+</body>
+</html>
