@@ -1,0 +1,37 @@
+Generating comparative training curves from CSV logs...
+Comparison plot saved successfully to data/logs/comparison_plot.png
+
+Running Evaluation Benchmark on available model checkpoints...
+Skipping evaluation for DQN (Scratch): Checkpoint 'data/models/dqn_scratch_step_500000.pth' does not exist.
+Skipping evaluation for Dueling DDQN (Scratch): Checkpoint 'data/models/dueling_ddqn_scratch_step_500000.pth' does not exist.
+Evaluating DQN (SB3)...
+A.L.E: Arcade Learning Environment (version 0.11.2+ecc1138)
+[Powered by Stella]
+/home/duckq1u/Documents/RL_VKU/.venv/lib/python3.11/site-packages/gymnasium/wrappers/rendering.py:293: UserWarning: WARN: Overwriting existing videos at /home/duckq1u/Documents/RL_VKU/data/videos folder (try specifying a different `video_folder` for the `RecordVideo` wrapper if this is not desired)
+  logger.warn(
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+/home/duckq1u/Documents/RL_VKU/.venv/lib/python3.11/site-packages/stable_baselines3/common/buffers.py:242: UserWarning: This system does not have apparently enough memory to store the complete replay buffer 3.39GB > 3.32GB
+  warnings.warn(
+Evaluating Dueling DQN (SB3)...
+/home/duckq1u/Documents/RL_VKU/.venv/lib/python3.11/site-packages/gymnasium/wrappers/rendering.py:293: UserWarning: WARN: Overwriting existing videos at /home/duckq1u/Documents/RL_VKU/data/videos folder (try specifying a different `video_folder` for the `RecordVideo` wrapper if this is not desired)
+  logger.warn(
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+/home/duckq1u/Documents/RL_VKU/.venv/lib/python3.11/site-packages/stable_baselines3/common/buffers.py:242: UserWarning: This system does not have apparently enough memory to store the complete replay buffer 3.39GB > 3.09GB
+  warnings.warn(
+Evaluating PPO (SB3)...
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+Skipping evaluation for PPO (Scratch): Checkpoint 'data/models_step_500000/ppo_scratch_best.pt' does not exist.
+
+======================================================================
+               PONG RL AGENT COMPARATIVE PERFORMANCE MATRIX
+======================================================================
+Algorithm                 | Avg Reward   | Inference Speed      | Status
+----------------------------------------------------------------------
+DQN (SB3)                 | +6.60        | 493.1 frames/sec     | Converging
+Dueling DQN (SB3)         | +5.80        | 511.4 frames/sec     | Converging
+PPO (SB3)                 | -20.00       | 407.8 frames/sec     | Converging
+======================================================================
+

@@ -208,12 +208,12 @@ if __name__ == "__main__":
     # 2. Run Evaluations on existing checkpoints
     print("\nRunning Evaluation Benchmark on available model checkpoints...")
     checkpoints = {
-        "DQN (Scratch)": {"type": "scratch", "dueling": False, "path": "data/models/dqn_scratch.pth"},
-        "Dueling DDQN (Scratch)": {"type": "scratch", "dueling": True, "path": "data/models/dueling_ddqn_scratch.pth"},
-        "DQN (SB3)": {"type": "sb3", "algo": "dqn", "path": "data/models/dqn_sb3.zip"},
-        "Dueling DQN (SB3)": {"type": "sb3", "algo": "dueling_dqn", "path": "data/models/dueling_dqn_sb3.zip"},
-        "PPO (SB3)": {"type": "sb3", "algo": "ppo", "path": "data/models/ppo_sb3.zip"},
-        "PPO (Scratch)": {"type": "scratch_ppo", "path": find_ppo_scratch_checkpoint("data/models")}
+        "DQN (Scratch)": {"type": "scratch", "dueling": False, "path": "data/models/dqn_scratch_step_500000.pth"},
+        "Dueling DDQN (Scratch)": {"type": "scratch", "dueling": True, "path": "data/models/dueling_ddqn_scratch_step_500000.pth"},
+        "DQN (SB3)": {"type": "sb3", "algo": "dqn", "path": "data/models/dqn_sb3_step_500000.zip"},
+        "Dueling DQN (SB3)": {"type": "sb3", "algo": "dueling_dqn", "path": "data/models/dueling_dqn_sb3_step_500000.zip"},
+        "PPO (SB3)": {"type": "sb3", "algo": "ppo", "path": "data/models/ppo_sb3_step_500000.zip"},
+        "PPO (Scratch)": {"type": "scratch_ppo", "path": find_ppo_scratch_checkpoint("data/models_step_500000")}
     }
     
     results = []
