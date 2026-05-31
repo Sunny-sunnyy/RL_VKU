@@ -27,15 +27,16 @@ class SB3CSVLoggerCallback(BaseCallback):
         """
         super().__init__(verbose)
         self.csv_filepath = csv_filepath
-        self.logger = None
+        self.csv_logger = None
         self.episode_count = 0
+        self.recent_rewards = []
 
     def _on_training_start(self) -> None:
         """
         Initialize CSVLogger with the required headers.
         """
         headers = ["episode", "reward", "steps", "length"]
-        self.logger = CSVLogger(self.csv_filepath, headers)
+        self.csv_logger = CSVLogger(self.csv_filepath, headers)
         self.episode_count = 0
 
     def _on_step(self) -> bool:
@@ -47,18 +48,28 @@ class SB3CSVLoggerCallback(BaseCallback):
             for info in infos:
                 if "episode" in info:
                     self.episode_count += 1
-                    self.logger.log({
+                    ep_reward = info["episode"]["r"]
+                    self.recent_rewards.append(ep_reward)
+                    if len(self.recent_rewards) > 10:
+                        self.recent_rewards.pop(0)
+
+                    self.csv_logger.log({
                         "episode": self.episode_count,
-                        "reward": info["episode"]["r"],
+                        "reward": ep_reward,
                         "steps": self.num_timesteps,
                         "length": info["episode"]["l"]
                     })
+
+                    # Early stopping when average reward over last 10 episodes >= 18.0
+                    if len(self.recent_rewards) >= 10 and np.mean(self.recent_rewards) >= 18.0:
+                        print(f"Early stopping triggered! Mean reward over last 10 episodes is {np.mean(self.recent_rewards):.1f} >= 18.0. Target solved!")
+                        return False
         return True
 
 def train_sb3(
     algo: str,
     env_id: str = "PongNoFrameskip-v4",
-    total_timesteps: int = 1000000,
+    total_timesteps: int = 500000,
     seed: int = 42,
     log_dir: str = "data/logs",
     save_dir: str = "data/models"
@@ -99,16 +110,19 @@ def train_sb3(
             "policy": "CnnPolicy",
             "env": env,
             "learning_rate": 1e-4,
-            "buffer_size": 100000,
-            "learning_starts": 10000,
+            "buffer_size": 30000,
+            "learning_starts": 5000,
             "batch_size": 32,
-            "target_update_interval": 10000,
+            "target_update_interval": 2000,
             "train_freq": 4,
             "exploration_fraction": 0.1,
             "exploration_final_eps": 0.01,
             "exploration_initial_eps": 1.0,
             "seed": seed,
             "tensorboard_log": tb_log_dir,
+            "policy_kwargs": {"normalize_images": False},
+            "optimize_memory_usage": True,
+            "replay_buffer_kwargs": {"handle_timeout_termination": False},
             "verbose": 1
         }
 
@@ -135,6 +149,7 @@ def train_sb3(
             ent_coef=0.01,
             seed=seed,
             tensorboard_log=tb_log_dir,
+            policy_kwargs=dict(normalize_images=False),
             verbose=1
         )
     else:

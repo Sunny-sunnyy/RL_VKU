@@ -12,12 +12,12 @@ def train_scratch(
     env_id: str = "PongNoFrameskip-v4",
     dueling: bool = False,
     double: bool = True,
-    total_steps: int = 1000000,
+    total_steps: int = 500000,
     lr: float = 1e-4,
-    buffer_size: int = 100000,
+    buffer_size: int = 30000,
     batch_size: int = 32,
-    target_update_freq: int = 10000,
-    learning_starts: int = 10000,
+    target_update_freq: int = 2000,
+    learning_starts: int = 5000,
     train_freq: int = 4,
     save_dir: str = "data/models",
     log_dir: str = "data/logs",
@@ -110,6 +110,7 @@ def train_scratch(
     
     # Best reward tracking for checkpoints
     best_mean_reward = -float("inf")
+    recent_rewards = []
     
     print(f"Starting training: {algo_label} on {env_id} using {device}")
     print(f"Total steps: {total_steps} | Warmup: {learning_starts} | Target sync: {target_update_freq}")
@@ -199,6 +200,14 @@ def train_scratch(
                     filepath=os.path.join(save_dir, f"{algo_name.lower()}_best.pt")
                 )
                 
+            # Check early stopping (Mean reward over last 10 episodes >= 18.0)
+            recent_rewards.append(episode_reward)
+            if len(recent_rewards) > 10:
+                recent_rewards.pop(0)
+            if len(recent_rewards) >= 10 and np.mean(recent_rewards) >= 18.0:
+                print(f"Early stopping triggered at step {step}! Mean reward over last 10 episodes is {np.mean(recent_rewards):.1f} >= 18.0. Target solved!")
+                break
+
             # Reset episode variables
             state, _ = env.reset()
             episode_reward = 0.0
